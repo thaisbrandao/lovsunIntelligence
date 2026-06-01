@@ -101,7 +101,7 @@ lovsun-Intelligence/
 
 ## Demo interactiva
 
-🔗 **[Ver presentación del proyecto →](https://thaisbrandao.github.io/lovsun-Intelligence/)**
+🔗 **[Ver presentación del proyecto →](https://thaisbrandao.github.io/lovsunIntelligence/)**
 
 ---
 
