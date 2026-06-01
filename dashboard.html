@@ -1,0 +1,2547 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LOVSUN — Intelligence Engine</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<!-- Leaflet (mapa interactivo realista) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<style>
+/* ════════════════════════════════════════════════════════════════
+   IDENTIDAD VISUAL LOVSUN — MEDITERRÁNEO LUJO
+   Tokens según IDENTIDAD_VISUAL_LOVSUN.md
+   ════════════════════════════════════════════════════════════════ */
+:root{
+  /* Base — superficies y texto */
+  --sand-00:#FBF7F0;
+  --sand-05:#F2EBDF;
+  --sand-10:#E6DBC8;
+  --sand-20:#D6C8AE;
+  --ink-90:#1A1410;
+  --ink-60:#5C5247;
+  --ink-30:#A8997F;
+
+  /* Acento — color de marca */
+  --terracotta:#C75B3C;
+  --terracotta-soft:#E89A82;
+  --terracotta-pale:rgba(199,91,60,.10);
+  --oro-quemado:#B8893A;
+  --oro-luz:#E8C97A;
+
+  /* Señal — datos */
+  --mar-profundo:#1F4E6B;
+  --mar-medio:#5A8FA6;
+  --agua:#A8CFD8;
+  --olivo:#7C8C5C;
+  --coral:#E07B5C;
+  --rojo-sangria:#9B2D3F;
+
+  /* Tipografía */
+  --display:'Cormorant Garamond', Georgia, serif;
+  --text:'Inter', system-ui, -apple-system, sans-serif;
+  --mono:'JetBrains Mono', monospace;
+
+  --shadow-sm:0 1px 3px rgba(26,20,16,.06);
+  --shadow-md:0 8px 24px rgba(26,20,16,.08);
+  --shadow-lg:0 24px 48px rgba(26,20,16,.12);
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--sand-00);color:var(--ink-90);font-family:var(--text);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+
+/* ── Tipografía ─────────────────────────────────────────── */
+h1,h2,h3,.display{font-family:var(--display);font-weight:500;line-height:1.15;color:var(--ink-90)}
+h1{font-size:56px;letter-spacing:-0.01em}
+h2{font-size:36px;letter-spacing:-0.005em}
+h3{font-size:22px}
+.eyebrow{font-family:var(--text);font-size:11px;font-weight:500;letter-spacing:0.18em;text-transform:uppercase;color:var(--ink-30)}
+.mono{font-family:var(--mono);font-size:11px;letter-spacing:0.04em}
+.italic{font-style:italic}
+em{font-style:italic;color:var(--terracotta);font-weight:500}
+
+a{color:var(--terracotta);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* ── Layout general ────────────────────────────────────── */
+.wrap{max-width:1280px;margin:0 auto;padding:0 32px}
+section{padding:96px 0;position:relative}
+section + section{border-top:1px solid var(--sand-10)}
+
+/* ── Header ────────────────────────────────────────────── */
+header{position:sticky;top:0;z-index:50;background:rgba(251,247,240,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--sand-10)}
+.head{display:flex;align-items:center;justify-content:space-between;padding:18px 32px;max-width:1280px;margin:0 auto}
+.logo{font-family:var(--display);font-size:26px;font-weight:600;color:var(--terracotta);letter-spacing:0.08em}
+.logo-sub{font-family:var(--text);font-size:11px;font-weight:400;color:var(--ink-60);letter-spacing:0.04em;margin-left:10px}
+nav{display:flex;gap:28px}
+nav a{color:var(--ink-60);font-size:13px;font-weight:500;letter-spacing:0.02em;text-decoration:none;transition:color .2s}
+nav a:hover{color:var(--terracotta);text-decoration:none}
+.srv{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:10px;color:var(--ink-60)}
+.srv-dot{width:7px;height:7px;border-radius:50%;background:var(--ink-30)}
+.srv-dot.on{background:var(--olivo);box-shadow:0 0 0 3px rgba(124,140,92,.22)}
+.srv-dot.off{background:var(--rojo-sangria)}
+
+/* ── Hero ──────────────────────────────────────────────── */
+.hero{padding:120px 0 80px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-200px;right:-200px;width:600px;height:600px;background:radial-gradient(circle,rgba(232,201,122,.20),transparent 70%);pointer-events:none}
+.hero h1{max-width:820px;margin-bottom:24px}
+.hero h1 em{color:var(--terracotta);font-style:italic}
+.hero p.lead{max-width:620px;font-size:18px;color:var(--ink-60);margin-bottom:40px;line-height:1.6}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:32px;margin-top:48px;padding-top:40px;border-top:1px solid var(--sand-10)}
+.kpi .num{font-family:var(--display);font-size:48px;font-weight:500;color:var(--ink-90);line-height:1}
+.kpi .num em{color:var(--terracotta)}
+.kpi .lbl{font-size:12px;color:var(--ink-60);margin-top:8px;letter-spacing:0.02em}
+
+/* ── Section header ────────────────────────────────────── */
+.sec-head{margin-bottom:48px;max-width:720px}
+.sec-head .eyebrow{margin-bottom:14px;display:inline-block}
+.sec-head h2{margin-bottom:16px}
+.sec-head p{color:var(--ink-60);font-size:16px}
+
+/* ════════════════════════════════════════════════════════
+   SECCIÓN 0 — VEREDICTO DEL DÍA (automatización)
+   ════════════════════════════════════════════════════════ */
+.daily-section{background:var(--sand-05);border-top:1px solid var(--sand-10);border-bottom:1px solid var(--sand-10);padding:48px 0!important}
+.daily-bar{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:28px;gap:24px;flex-wrap:wrap}
+.daily-bar .left h3{font-family:var(--display);font-size:28px;color:var(--ink-90);font-weight:500}
+.daily-bar .left h3 em{font-style:italic;color:var(--terracotta);font-weight:500}
+.daily-bar .left .meta{font-family:var(--mono);font-size:11px;color:var(--ink-60);margin-top:6px;letter-spacing:0.04em}
+.daily-bar .left .meta strong{color:var(--ink-90);font-weight:500}
+.daily-bar .right{display:flex;align-items:center;gap:12px}
+.daily-status{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;color:var(--ink-60);letter-spacing:0.06em}
+.daily-status .dot{width:7px;height:7px;border-radius:50%;background:var(--ink-30)}
+.daily-status .dot.live{background:var(--olivo);box-shadow:0 0 6px var(--olivo)}
+.daily-status .dot.stale{background:var(--coral)}
+.daily-status .dot.empty{background:var(--rojo-sangria)}
+
+.btn-pipeline{padding:11px 20px;border:1px solid var(--terracotta);background:var(--terracotta);color:#fff;font:500 13px var(--text);letter-spacing:0.02em;border-radius:6px;cursor:pointer;transition:all .18s;display:inline-flex;align-items:center;gap:8px}
+.btn-pipeline:hover{background:#a84a30;border-color:#a84a30}
+.btn-pipeline:disabled{opacity:.55;cursor:not-allowed}
+.btn-pipeline.ghost{background:transparent;color:var(--terracotta)}
+.btn-pipeline.ghost:hover{background:var(--terracotta-pale)}
+
+.winners-grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:20px}
+.winner-card{background:#fff;border:1px solid var(--sand-10);border-radius:10px;padding:22px;display:flex;flex-direction:column;gap:14px;position:relative;overflow:hidden;transition:transform .2s, box-shadow .2s}
+.winner-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:var(--terracotta)}
+.winner-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.winner-card .geo{display:flex;align-items:center;justify-content:space-between}
+.winner-card .geo-flag{font-size:22px}
+.winner-card .geo-code{font-family:var(--mono);font-size:11px;color:var(--ink-30);letter-spacing:0.1em}
+.winner-card .style-name{font-family:var(--display);font-size:32px;font-style:italic;color:var(--terracotta);line-height:1;font-weight:500}
+.winner-card .label-small{font-size:10px;color:var(--ink-30);letter-spacing:0.18em;text-transform:uppercase;margin-bottom:4px}
+.winner-card .delta{display:flex;align-items:baseline;gap:18px;padding:12px 0;border-top:1px solid var(--sand-10);border-bottom:1px solid var(--sand-10)}
+.winner-card .delta-block .v{font-family:var(--display);font-size:24px;font-weight:500;line-height:1}
+.winner-card .delta-block .v.up{color:var(--olivo)}
+.winner-card .delta-block .v.up::before{content:'↗ '}
+.winner-card .delta-block .v.down{color:var(--rojo-sangria)}
+.winner-card .delta-block .v.down::before{content:'↘ '}
+.winner-card .delta-block .l{font-size:10px;color:var(--ink-60);margin-top:3px;letter-spacing:0.04em}
+.winner-card .action-line{font-size:12px;color:var(--ink-60);line-height:1.5}
+.winner-card .action-line strong{color:var(--terracotta);font-weight:600}
+
+/* Vista tipo Google Trends — tabla de categorías por país */
+.trends-country{background:#fff;border:1px solid var(--sand-10);border-radius:10px;margin-bottom:20px;overflow:hidden;box-shadow:var(--shadow-sm)}
+.trends-country-head{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;background:var(--sand-00);border-bottom:1px solid var(--sand-10)}
+.trends-country-head .geo-info{display:flex;align-items:center;gap:12px}
+.trends-country-head .geo-flag{font-size:24px}
+.trends-country-head .geo-name{font:600 14px var(--text);color:var(--ink-90);letter-spacing:0.02em}
+.trends-country-head .geo-meta{font-family:var(--mono);font-size:10px;color:var(--ink-60);letter-spacing:0.04em}
+.trends-country-head .winner-tag{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink-60)}
+.trends-country-head .winner-tag strong{color:var(--terracotta);font-style:italic;font-family:var(--display);font-size:14px;font-weight:500}
+
+.trends-table{width:100%;border-collapse:collapse}
+.trends-table th{text-align:left;font:500 10px var(--text);color:var(--ink-30);letter-spacing:0.14em;text-transform:uppercase;padding:12px 22px;border-bottom:1px solid var(--sand-10);background:#fff}
+.trends-table th.num{text-align:right}
+.trends-table td{padding:14px 22px;border-bottom:1px solid var(--sand-05);font-size:13px;vertical-align:middle}
+.trends-table tr:last-child td{border-bottom:none}
+.trends-table tr:hover td{background:var(--sand-00)}
+.trends-table tr.is-top td{background:rgba(232,201,122,.10)}
+.trends-table tr.is-top:hover td{background:rgba(232,201,122,.18)}
+
+.tr-rank{width:24px;font-family:var(--mono);font-size:11px;color:var(--ink-30);font-weight:500}
+.tr-rank.gold{color:var(--terracotta);font-weight:600}
+.tr-name{min-width:170px}
+.tr-name .label{font:500 14px var(--text);color:var(--ink-90);line-height:1.2}
+.tr-name .label em{font-style:italic;color:var(--terracotta);font-weight:500}
+.tr-name .kw{font-family:var(--mono);font-size:10px;color:var(--ink-30);margin-top:3px;letter-spacing:0.02em}
+
+.tr-score{min-width:160px}
+.tr-score-bar{height:6px;background:var(--sand-10);border-radius:3px;overflow:hidden;margin-bottom:4px}
+.tr-score-fill{height:100%;background:linear-gradient(90deg,var(--mar-medio),var(--terracotta));border-radius:3px;transition:width .6s ease}
+.tr-score-val{font-family:var(--mono);font-size:11px;color:var(--ink-60);letter-spacing:0.04em}
+.tr-score-val strong{color:var(--ink-90);font-weight:500}
+
+.tr-delta{text-align:right;font-family:var(--mono);font-size:13px;font-weight:500;width:90px;white-space:nowrap}
+.tr-delta.up{color:var(--olivo)}
+.tr-delta.up::before{content:'↗ '}
+.tr-delta.down{color:var(--rojo-sangria)}
+.tr-delta.down::before{content:'↘ '}
+.tr-delta.flat{color:var(--ink-60)}
+.tr-delta.flat::before{content:'→ '}
+
+.tr-spark{width:120px}
+.tr-spark svg{display:block;width:100%;height:32px}
+
+.tr-status{font-size:11px;color:var(--ink-60);white-space:nowrap;text-align:center;width:120px}
+.tr-status .pill{display:inline-block;padding:3px 10px;border-radius:12px;font:500 10px var(--text);letter-spacing:0.06em;text-transform:uppercase}
+.tr-status .pill.hot{background:rgba(155,45,63,.10);color:var(--rojo-sangria)}
+.tr-status .pill.rising{background:rgba(232,201,122,.16);color:var(--oro-quemado)}
+.tr-status .pill.stable{background:rgba(124,140,92,.16);color:var(--olivo)}
+.tr-status .pill.cool{background:rgba(90,143,166,.16);color:var(--mar-medio)}
+.tr-status .pill.declining{background:rgba(199,91,60,.10);color:var(--terracotta)}
+
+.tr-action{font-size:12px;color:var(--ink-60);line-height:1.4;min-width:240px;max-width:340px}
+.tr-action strong{color:var(--terracotta);font-weight:600}
+
+.trends-empty-row{padding:24px;text-align:center;color:var(--ink-30);font-size:13px;font-family:var(--mono)}
+
+.winners-empty{padding:40px 24px;background:#fff;border:1px dashed var(--sand-20);border-radius:8px;text-align:center;color:var(--ink-60)}
+.winners-empty .icon{font-family:var(--display);font-size:48px;color:var(--sand-20);font-style:italic;line-height:1;margin-bottom:8px}
+.winners-empty .cmd{font-family:var(--mono);font-size:11px;background:var(--ink-90);color:var(--sand-00);padding:6px 12px;border-radius:4px;display:inline-block;margin-top:10px}
+
+.pipeline-progress{margin-top:20px;background:#fff;border:1px solid var(--sand-10);border-radius:8px;overflow:hidden;display:none}
+.pp-head{padding:12px 18px;background:var(--ink-90);color:var(--sand-00);font:500 12px var(--text);letter-spacing:0.04em;display:flex;justify-content:space-between;align-items:center}
+.pp-head .dot{width:8px;height:8px;border-radius:50%;background:var(--oro-luz);animation:pulseDot 1.4s infinite}
+.pp-body{padding:14px 18px;font-family:var(--mono);font-size:11px;color:var(--ink-60);max-height:200px;overflow-y:auto;line-height:1.7}
+.pp-body .ok{color:var(--olivo)}
+.pp-body .err{color:var(--rojo-sangria)}
+.pp-body .warn{color:var(--oro-quemado)}
+.pp-body .info{color:var(--mar-medio);opacity:.8}
+
+/* ════════════════════════════════════════════════════════
+   SECCIÓN 1 — MAPA INTERACTIVO (Leaflet + heatmap glow)
+   ════════════════════════════════════════════════════════ */
+.map-shell{display:grid;grid-template-columns:240px 1fr 280px;gap:24px;height:560px}
+.map-side{background:var(--sand-05);border:1px solid var(--sand-10);border-radius:8px;padding:24px;display:flex;flex-direction:column;gap:20px}
+.map-canvas{background:#fff;border:1px solid var(--sand-10);border-radius:10px;position:relative;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow-md);height:560px}
+.map-header{display:flex;justify-content:space-between;align-items:flex-end;padding:18px 22px;border-bottom:1px solid var(--sand-10);background:var(--sand-00);z-index:5}
+.map-title{font-family:var(--display);font-size:22px;color:var(--ink-90);font-weight:600;line-height:1.1}
+.map-title em{font-style:italic;color:var(--terracotta);font-weight:500}
+.map-sub{font-size:10px;color:var(--ink-30);letter-spacing:0.14em;text-transform:uppercase;margin-top:4px;font-family:var(--mono)}
+
+.side-block{}
+.side-label{font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--ink-30);margin-bottom:10px;font-weight:500}
+.country-btns{display:flex;flex-direction:column;gap:6px}
+.cbtn{padding:10px 14px;border:1px solid var(--sand-10);background:#fff;border-radius:6px;cursor:pointer;font:500 13px var(--text);color:var(--ink-60);text-align:left;transition:all .18s}
+.cbtn:hover{border-color:var(--terracotta-soft);color:var(--ink-90)}
+.cbtn.on{background:var(--terracotta);border-color:var(--terracotta);color:#fff}
+.cbtn .flag{font-size:14px;margin-right:8px}
+
+.style-list{display:flex;flex-direction:column;gap:6px}
+.sitem{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--sand-10);background:#fff;border-radius:6px;cursor:pointer;transition:all .18s}
+.sitem:hover{border-color:var(--terracotta-soft)}
+.sitem.on{border-color:var(--terracotta);background:var(--terracotta-pale)}
+.s-ic{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1.5px solid;background:#1a1410}
+.s-ic svg{width:18px;height:18px;color:#fff}
+.sname{flex:1;font-size:13px;font-weight:500;color:var(--ink-90);line-height:1.2}
+.sname em{color:var(--terracotta);font-style:italic;font-weight:500}
+.sscore{font-family:var(--mono);font-size:11px;color:var(--oro-quemado);font-weight:500}
+
+/* Leaflet container */
+#leafletMap{height:460px;width:100%;background:#dde6ed;cursor:grab}
+#leafletMap:active{cursor:grabbing}
+.leaflet-container{font-family:var(--text);background:#dde6ed}
+.leaflet-control-attribution{font-family:var(--mono);font-size:9px;background:rgba(251,247,240,.85)!important;color:var(--ink-60)!important}
+.leaflet-control-zoom a{background:#fff!important;color:var(--ink-90)!important;border-color:var(--sand-10)!important}
+.leaflet-control-zoom a:hover{background:var(--terracotta-pale)!important;color:var(--terracotta)!important}
+
+/* Marcadores circulares con icono de prenda (estilo TV weather) */
+.bk-marker{display:flex;flex-direction:column;align-items:center;cursor:pointer;pointer-events:auto}
+.bk-marker .bk-bubble{
+  width:46px;height:46px;border-radius:50%;
+  background:rgba(26,20,16,.92);
+  border:2.5px solid;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 20px currentColor, 0 4px 8px rgba(0,0,0,.35), inset 0 0 6px rgba(0,0,0,.4);
+  transition:transform .25s, box-shadow .25s
+}
+.bk-marker:hover .bk-bubble{transform:scale(1.12);box-shadow:0 0 32px currentColor, 0 6px 14px rgba(0,0,0,.45), inset 0 0 6px rgba(0,0,0,.4)}
+.bk-marker .bk-bubble svg{width:24px;height:24px;color:#fff}
+.bk-marker .bk-label{
+  margin-top:5px;
+  font:600 11px var(--text);
+  color:#fff;letter-spacing:0.02em;
+  padding:2px 8px;
+  background:rgba(26,20,16,.78);
+  border-radius:3px;
+  text-shadow:0 1px 2px rgba(0,0,0,.6);
+  white-space:nowrap
+}
+
+/* Heatmap fade */
+.leaflet-heatmap-layer{opacity:.78;mix-blend-mode:multiply}
+
+/* Leyenda de intensidad */
+.map-legend{
+  position:absolute;bottom:14px;left:14px;z-index:500;
+  background:rgba(251,247,240,.94);backdrop-filter:blur(6px);
+  border:1px solid var(--sand-10);border-radius:6px;
+  padding:10px 14px;display:flex;align-items:center;gap:12px;
+  box-shadow:var(--shadow-sm)
+}
+.map-legend .leglbl{font-family:var(--mono);font-size:9px;color:var(--ink-60);letter-spacing:0.04em}
+.map-legend .legbar{width:140px;height:8px;border-radius:4px;background:linear-gradient(90deg,var(--agua),var(--mar-medio),var(--oro-luz),var(--terracotta),var(--rojo-sangria))}
+
+/* Badge esquina con estilo activo */
+.map-badge{
+  position:absolute;top:78px;left:14px;z-index:500;
+  background:rgba(26,20,16,.88);color:#fff;
+  padding:8px 14px;border-radius:5px;
+  font:500 11px var(--text);letter-spacing:0.06em;
+  display:flex;align-items:center;gap:10px;
+  box-shadow:0 4px 14px rgba(0,0,0,.18)
+}
+.map-badge .badge-dot{width:8px;height:8px;border-radius:50%;background:var(--terracotta);box-shadow:0 0 8px var(--terracotta);animation:pulseDot 2s infinite}
+@keyframes pulseDot{0%,100%{opacity:1}50%{opacity:.45}}
+.map-badge em{font-style:italic;color:var(--oro-luz);font-weight:500}
+
+/* Ranking panel */
+.rank-block{display:flex;flex-direction:column;gap:8px}
+.rrow{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--sand-10);cursor:pointer;transition:opacity .18s}
+.rrow:last-child{border-bottom:none}
+.rrow:hover{opacity:.75}
+.rrk{width:22px;font-family:var(--mono);font-size:11px;color:var(--ink-30);text-align:right}
+.rrk.gold{color:var(--terracotta);font-weight:600}
+.rnm{flex:1;font-size:13px;color:var(--ink-90)}
+.rbar{flex:0 0 50px;height:3px;background:var(--sand-10);border-radius:2px;overflow:hidden}
+.rfil{height:100%;background:linear-gradient(90deg,var(--terracotta),var(--oro-luz))}
+.rvl{width:30px;text-align:right;font-family:var(--mono);font-size:11px;color:var(--ink-60)}
+
+/* Tooltip Mediterráneo */
+.leaflet-popup-content-wrapper{
+  background:#fff;border:1px solid var(--sand-10);border-left:3px solid var(--terracotta);
+  border-radius:6px;box-shadow:var(--shadow-md);padding:0
+}
+.leaflet-popup-content{margin:12px 16px;font-family:var(--text);font-size:12px;line-height:1.5}
+.leaflet-popup-tip{background:#fff}
+.pop-name{font-family:var(--display);font-size:17px;font-style:italic;color:var(--terracotta);margin-bottom:6px;font-weight:500;line-height:1.1}
+.pop-row{display:flex;justify-content:space-between;gap:18px;padding:2px 0;color:var(--ink-60);font-size:11px}
+.pop-val{color:var(--ink-90);font-weight:500;font-family:var(--mono)}
+.pop-val.hot{color:var(--terracotta)}
+
+/* ════════════════════════════════════════════════════════
+   SECCIÓN 2 — MODELO AI
+   ════════════════════════════════════════════════════════ */
+.ai-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:32px}
+.ai-card{background:#fff;border:1px solid var(--sand-10);border-radius:8px;padding:32px}
+.ai-card.terra{background:var(--terracotta-pale);border-color:var(--terracotta-soft)}
+
+.drop{border:1.5px dashed var(--sand-20);border-radius:8px;padding:48px 24px;text-align:center;cursor:pointer;transition:all .2s;background:var(--sand-00)}
+.drop:hover{border-color:var(--terracotta);background:var(--terracotta-pale)}
+.drop.has{padding:16px}
+.drop-icon{font-family:var(--display);font-size:36px;color:var(--terracotta);margin-bottom:12px}
+.drop-txt{color:var(--ink-60);font-size:14px}
+.drop-hint{color:var(--ink-30);font-size:12px;margin-top:6px}
+#preview{max-width:100%;max-height:280px;border-radius:6px;display:none;margin:0 auto}
+
+.cta{width:100%;margin-top:20px;padding:14px 24px;border:none;background:var(--terracotta);color:#fff;font:500 14px var(--text);letter-spacing:0.02em;border-radius:6px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:10px}
+.cta:hover{background:#a84a30}
+.cta:disabled{opacity:.45;cursor:not-allowed}
+.cta.ghost{background:transparent;color:var(--terracotta);border:1px solid var(--terracotta)}
+.cta.ghost:hover{background:var(--terracotta-pale)}
+.cta.gold{background:var(--oro-quemado)}
+.cta.gold:hover{background:#9a721f}
+
+.loader{display:none;text-align:center;padding:24px;color:var(--ink-30);font-family:var(--mono);font-size:11px;animation:pulse 1.4s infinite}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+
+.verdict{display:none}
+.v-eyebrow{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--ink-30);margin-bottom:10px}
+.v-class{font-family:var(--display);font-size:36px;font-style:italic;color:var(--terracotta);margin-bottom:6px;line-height:1.1}
+.v-conf{font-family:var(--mono);font-size:13px;color:var(--oro-quemado);margin-bottom:24px}
+
+.confbar{height:4px;background:var(--sand-10);border-radius:2px;overflow:hidden;margin:8px 0 24px}
+.conffil{height:100%;background:linear-gradient(90deg,var(--oro-quemado),var(--oro-luz));transition:width 1.2s ease}
+
+.top3{margin-bottom:24px}
+.t3r{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--sand-10);font-size:13px}
+.t3r:last-child{border:none}
+.t3n{flex:1;color:var(--ink-90)}
+.t3b{flex:0 0 80px;height:3px;background:var(--sand-10);border-radius:2px;overflow:hidden}
+.t3f{height:100%;background:var(--terracotta)}
+.t3v{font-family:var(--mono);font-size:11px;color:var(--ink-60);width:46px;text-align:right}
+
+.colors-row{display:flex;gap:10px;margin:8px 0 24px}
+.cdot{width:36px;height:36px;border-radius:50%;border:2px solid #fff;box-shadow:var(--shadow-sm);cursor:pointer;transition:transform .2s}
+.cdot:hover{transform:scale(1.12)}
+
+.action-box{background:var(--sand-05);border-left:3px solid var(--terracotta);padding:16px 20px;border-radius:0 6px 6px 0;margin-top:20px}
+.action-label{font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--ink-30);margin-bottom:6px}
+.action-txt{font-size:14px;color:var(--ink-90);line-height:1.55}
+.action-txt strong{color:var(--terracotta);font-weight:600}
+
+/* ════════════════════════════════════════════════════════
+   SECCIÓN 3 — WEBSCRAPING + FORECASTING
+   ════════════════════════════════════════════════════════ */
+.scrape-grid{display:grid;grid-template-columns:340px 1fr;gap:32px}
+
+.source-card{background:#fff;border:1px solid var(--sand-10);border-radius:8px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .15s;margin-bottom:8px}
+.source-card:hover{border-color:var(--terracotta-soft)}
+.source-card.on{border-color:var(--terracotta);background:var(--terracotta-pale)}
+.src-check{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--sand-20);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff}
+.source-card.on .src-check{background:var(--terracotta);border-color:var(--terracotta)}
+.source-card.on .src-check::after{content:'✓'}
+.src-name{flex:1}
+.src-n{font-size:13px;font-weight:500;color:var(--ink-90)}
+.src-meta{font-family:var(--mono);font-size:10px;color:var(--ink-30);margin-top:2px}
+.src-live{font-family:var(--mono);font-size:9px;padding:2px 7px;border-radius:10px;background:rgba(124,140,92,.16);color:var(--olivo)}
+.src-live.off{background:rgba(168,153,127,.16);color:var(--ink-30)}
+
+.scrape-input{width:100%;padding:12px 14px;border:1px solid var(--sand-10);border-radius:6px;font:14px var(--text);background:#fff;color:var(--ink-90);outline:none;transition:border-color .2s}
+.scrape-input:focus{border-color:var(--terracotta)}
+
+.progress-shell{margin:16px 0;display:none}
+.prog-row{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--ink-60);margin-bottom:6px}
+.prog-bar{height:4px;background:var(--sand-10);border-radius:2px;overflow:hidden}
+.prog-fil{height:100%;background:linear-gradient(90deg,var(--terracotta),var(--oro-luz));width:0%;transition:width .3s ease}
+.prog-log{margin-top:14px;background:var(--ink-90);color:var(--sand-00);padding:14px 16px;border-radius:6px;font-family:var(--mono);font-size:11px;max-height:160px;overflow-y:auto;line-height:1.7}
+.prog-log .ok{color:#9DBF6F}
+.prog-log .url{color:var(--oro-luz)}
+.prog-log .err{color:var(--terracotta-soft)}
+
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--sand-10);margin-bottom:20px}
+.tab{padding:10px 18px;background:none;border:none;font:500 13px var(--text);color:var(--ink-60);cursor:pointer;position:relative;letter-spacing:0.02em}
+.tab.on{color:var(--terracotta)}
+.tab.on::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--terracotta)}
+
+.csv-shell{display:none;background:#fff;border:1px solid var(--sand-10);border-radius:8px;overflow:hidden}
+.csv-head{padding:14px 20px;background:var(--sand-05);border-bottom:1px solid var(--sand-10);display:flex;justify-content:space-between;align-items:center}
+.csv-meta{font-family:var(--mono);font-size:11px;color:var(--ink-60)}
+.csv-meta strong{color:var(--ink-90)}
+.csv-actions{display:flex;gap:8px}
+.btn-sm{padding:6px 12px;font:500 11px var(--text);border:1px solid var(--sand-10);background:#fff;color:var(--ink-90);border-radius:5px;cursor:pointer;transition:all .15s}
+.btn-sm:hover{border-color:var(--terracotta);color:var(--terracotta)}
+.btn-sm.solid{background:var(--terracotta);color:#fff;border-color:var(--terracotta)}
+.btn-sm.solid:hover{background:#a84a30}
+
+.csv-table{width:100%;border-collapse:collapse;font-size:12px}
+.csv-table th{background:var(--sand-00);text-align:left;padding:10px 16px;font:500 11px var(--text);color:var(--ink-30);letter-spacing:0.08em;text-transform:uppercase;border-bottom:1px solid var(--sand-10)}
+.csv-table td{padding:10px 16px;border-bottom:1px solid var(--sand-05);color:var(--ink-90);font-family:var(--mono)}
+.csv-table tr:hover td{background:var(--sand-00)}
+
+.forecast-shell{display:none;background:#fff;border:1px solid var(--sand-10);border-radius:8px;padding:24px}
+.fc-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:20px}
+.fc-title{font-family:var(--display);font-size:24px;color:var(--ink-90)}
+.fc-sub{font-size:12px;color:var(--ink-60);margin-top:4px}
+.fc-stats{display:flex;gap:24px}
+.fc-stat .v{font-family:var(--display);font-size:28px;color:var(--terracotta);font-weight:500;line-height:1}
+.fc-stat .v.up::before{content:'↗ ';color:var(--olivo)}
+.fc-stat .v.down::before{content:'↘ ';color:var(--rojo-sangria)}
+.fc-stat .l{font-size:11px;color:var(--ink-60);margin-top:4px;letter-spacing:0.04em}
+
+#forecastChart{max-height:380px}
+
+.fc-insight{background:var(--sand-05);border-radius:6px;padding:16px 20px;margin-top:20px;display:flex;gap:14px;align-items:flex-start}
+.fc-i-icon{font-family:var(--display);font-size:24px;color:var(--terracotta);font-style:italic;line-height:1}
+.fc-i-txt{flex:1;font-size:13px;color:var(--ink-90);line-height:1.6}
+.fc-i-txt strong{color:var(--terracotta);font-weight:600}
+
+/* ── Footer ───────────────────────────────────────────── */
+footer{padding:64px 0 48px;background:var(--sand-05);border-top:1px solid var(--sand-10);margin-top:48px}
+.foot{display:flex;justify-content:space-between;align-items:center;max-width:1280px;margin:0 auto;padding:0 32px;flex-wrap:wrap;gap:16px}
+.foot-logo{font-family:var(--display);font-size:20px;color:var(--terracotta);font-weight:600;letter-spacing:0.08em}
+.foot-meta{font-family:var(--mono);font-size:10px;color:var(--ink-30)}
+
+/* ── Responsive ─────────────────────────────────────── */
+@media (max-width:1100px){
+  .map-shell{grid-template-columns:1fr;}
+  .ai-grid{grid-template-columns:1fr}
+  .scrape-grid{grid-template-columns:1fr}
+  h1{font-size:42px}
+  h2{font-size:28px}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:640px){
+  nav{display:none}
+  section{padding:64px 0}
+  .wrap{padding:0 20px}
+}
+
+/* ── KPI Header Bar ─────────────────────────────────── */
+.kpi-bar{background:var(--ink-90);padding:9px 0;position:fixed;bottom:0;left:0;right:0;z-index:45;border-top:1px solid rgba(255,255,255,.08)}
+.kpi-bar-inner{max-width:1280px;margin:0 auto;padding:0 32px;display:flex;align-items:center;gap:24px;overflow-x:auto;scrollbar-width:none}
+.kpi-bar-inner::-webkit-scrollbar{display:none}
+.kpi-bar-item{display:flex;align-items:center;gap:8px;white-space:nowrap;flex-shrink:0}
+.kpi-bar-label{font-family:var(--mono);font-size:9px;color:rgba(232,201,122,.5);letter-spacing:0.1em;text-transform:uppercase}
+.kpi-bar-value{font-size:11px;font-weight:500;color:var(--sand-00)}
+.kpi-bar-value em{color:var(--oro-luz);font-style:normal;font-weight:600}
+.kpi-bar-sep{width:1px;height:20px;background:rgba(255,255,255,.10);flex-shrink:0}
+
+/* ── Market Toggle ──────────────────────────────────── */
+.market-toggle{display:flex;gap:4px;margin-bottom:20px;background:var(--sand-05);border:1px solid var(--sand-10);border-radius:8px;padding:5px;width:fit-content}
+.mktbtn{padding:7px 16px;border:none;border-radius:5px;font:500 12px var(--text);letter-spacing:0.02em;cursor:pointer;background:transparent;color:var(--ink-60);transition:all .18s;display:flex;align-items:center;gap:5px}
+.mktbtn:hover{color:var(--ink-90)}
+.mktbtn.on{background:#fff;color:var(--terracotta);box-shadow:var(--shadow-sm)}
+
+/* ── Interest Heatmap Bars ──────────────────────────── */
+.tr-score-fill.hm-cold{background:linear-gradient(90deg,#8898A8,#A2B4C2)!important}
+.tr-score-fill.hm-cool{background:linear-gradient(90deg,var(--mar-profundo),var(--mar-medio))!important}
+.tr-score-fill.hm-warm{background:linear-gradient(90deg,var(--oro-quemado),var(--oro-luz))!important}
+.tr-score-fill.hm-hot{background:linear-gradient(90deg,var(--terracotta),#E07B5C)!important}
+.tr-score-fill.hm-fire{background:linear-gradient(90deg,var(--rojo-sangria),var(--terracotta))!important}
+.tr-score-val .hm-badge{display:inline-block;margin-left:4px;font-size:9px;vertical-align:middle}
+
+/* ── Status Pills con flechas ───────────────────────── */
+.pill::before{margin-right:3px;font-size:10px;font-weight:800}
+.pill.hot::before{content:'↑↑';color:inherit}
+.pill.rising::before{content:'↑';color:inherit}
+.pill.stable::before{content:'→';color:inherit}
+.pill.cool::before{content:'↓';color:inherit}
+.pill.declining::before{content:'↓↓';color:inherit}
+
+/* ── BR Synonym Note ────────────────────────────────── */
+.br-note{display:inline-flex;align-items:center;gap:4px;background:rgba(31,78,107,.10);border:1px solid rgba(31,78,107,.20);border-radius:3px;padding:1px 7px;font-family:var(--mono);font-size:9px;color:var(--mar-profundo);letter-spacing:0.03em;vertical-align:middle;margin-left:5px}
+
+/* ── Seasonal Hint ──────────────────────────────────── */
+.seasonal-hint{margin-top:12px;padding:11px 15px;background:rgba(31,78,107,.06);border:1px solid rgba(31,78,107,.18);border-radius:6px;font-size:12px;color:var(--mar-profundo);display:none;line-height:1.55}
+.seasonal-hint strong{font-weight:600;color:var(--mar-profundo)}
+
+/* ── Category Forecast Selector ─────────────────────── */
+.fc-cat-selector{margin-bottom:14px;display:none;background:var(--sand-05);border:1px solid var(--sand-10);border-radius:6px;padding:12px 16px}
+.fc-cat-label-hd{font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--ink-30);margin-bottom:8px;font-weight:500}
+.fc-cat-btns{display:flex;gap:6px;flex-wrap:wrap}
+.fc-cat-btn{padding:5px 12px;border:1px solid var(--sand-10);background:#fff;border-radius:4px;font:500 11px var(--text);color:var(--ink-60);cursor:pointer;transition:all .15s}
+.fc-cat-btn:hover{border-color:var(--terracotta);color:var(--terracotta)}
+.fc-cat-btn.on{background:var(--terracotta);color:#fff;border-color:var(--terracotta)}
+
+/* ── Pipeline Progress Real ─────────────────────────── */
+.pp-progress-bar{height:3px;background:rgba(255,255,255,.12);overflow:hidden}
+.pp-progress-fil{height:100%;background:linear-gradient(90deg,var(--oro-luz),var(--terracotta-soft));width:0%;transition:width .6s ease}
+.pp-step{font-family:var(--mono);font-size:10px;color:var(--oro-luz);letter-spacing:0.04em}
+.pp-pct{font-family:var(--mono);font-size:10px;color:rgba(232,201,122,.75);margin-left:8px}
+
+/* ── Mapa: escala de color leyenda ─────────────────── */
+.map-legend .legbar{background:linear-gradient(90deg,#8898A8,#5A8FA6,var(--oro-quemado),var(--terracotta),var(--rojo-sangria))!important}
+.map-legend .leglbl.right{margin-left:auto}
+
+/* ── Acción con dato real ───────────────────────────── */
+.action-real-badge{display:inline-block;background:rgba(124,140,92,.14);color:var(--olivo);border:1px solid rgba(124,140,92,.28);border-radius:3px;font-family:var(--mono);font-size:9px;padding:1px 7px;margin-left:6px;letter-spacing:0.04em;vertical-align:middle}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════
+     HEADER
+     ════════════════════════════════════════════════════════ -->
+<header>
+  <div class="head">
+    <div>
+      <span class="logo">LOVSUN</span>
+      <span class="logo-sub">intelligence engine</span>
+    </div>
+    <nav>
+      <a href="#automatizacion">Veredicto del día</a>
+      <a href="#mapa">Mapa de tendencias</a>
+      <a href="#ai">Modelo AI</a>
+      <a href="#forecast">Forecasting</a>
+    </nav>
+    <div class="srv">
+      <span class="srv-dot" id="srvDot"></span>
+      <span id="srvTxt">verificando servidor…</span>
+    </div>
+  </div>
+</header>
+
+<!-- ════════════════════════════════════════════════════════
+     BARRA KPI DINÁMICA
+     ════════════════════════════════════════════════════════ -->
+
+<!-- ════════════════════════════════════════════════════════
+     HERO
+     ════════════════════════════════════════════════════════ -->
+<section class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Temporada SS26 · Intelligence Engine</div>
+    <h1>El <em>sol</em> como dato.<br>La moda de baño, anticipada.</h1>
+    <p class="lead">LOVSUN convierte miles de señales — pasarela, redes sociales, búsquedas, retail digital — en decisiones de producto, color y mercado antes de que empiece la temporada.</p>
+
+    <div class="kpis">
+      <div class="kpi">
+        <div class="num"><em id="kpiStyles">5</em></div>
+        <div class="lbl">Estilos activos en pipeline</div>
+      </div>
+      <div class="kpi">
+        <div class="num">94<em>%</em></div>
+        <div class="lbl">Precisión top-3 del modelo AI</div>
+      </div>
+      <div class="kpi">
+        <div class="num"><em id="kpiMarkets">2</em></div>
+        <div class="lbl">Mercados scrapeados hoy</div>
+      </div>
+      <div class="kpi">
+        <div class="num" id="kpiGrowthNum">+38<em>%</em></div>
+        <div class="lbl"><span id="kpiGrowthLbl">Bikini Asimétrico · vs SS25 · Iberia</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════
+     SECCIÓN 0 — VEREDICTO DEL DÍA (automatización)
+     ════════════════════════════════════════════════════════ -->
+<section id="automatizacion" class="daily-section">
+  <div class="wrap">
+    <div class="daily-bar">
+      <div class="left">
+        <div class="eyebrow" style="margin-bottom:8px">Pipeline automático · 06:00</div>
+        <h3>El <em>veredicto</em> del día</h3>
+        <div class="meta">
+          Última ejecución: <strong id="dailyTime">— sin datos —</strong>
+          <span style="margin:0 10px;color:var(--sand-20)">·</span>
+          Duración: <strong id="dailyDuration">—</strong>
+          <span style="margin:0 10px;color:var(--sand-20)">·</span>
+          Mercados: <strong id="dailyGeos">—</strong>
+        </div>
+      </div>
+      <div class="right">
+        <div class="daily-status">
+          <span class="dot empty" id="dailyDot"></span>
+          <span id="dailyState">sin snapshot</span>
+        </div>
+        <button class="btn-pipeline ghost" id="btnRefreshWinner">↻ Refrescar</button>
+        <button class="btn-pipeline" id="btnRunDaily">▸ Ejecutar pipeline ahora</button>
+      </div>
+    </div>
+
+    <!-- Toggle de mercado -->
+    <div class="market-toggle" id="marketToggle">
+      <button class="mktbtn on" data-geo="ALL">🌐 Todos</button>
+      <button class="mktbtn" data-geo="ES">🇪🇸 España</button>
+      <button class="mktbtn" data-geo="BR">🇧🇷 Brasil</button>
+      <button class="mktbtn" data-geo="COMPARE">⇌ Comparar ES·BR</button>
+    </div>
+
+    <div id="winnersGrid"></div>
+
+    <div class="pipeline-progress" id="ppShell">
+      <div class="pp-head">
+        <span><span class="dot"></span> Ejecutando pipeline diario…</span>
+        <div style="display:flex;align-items:center;gap:4px">
+          <span class="pp-step" id="ppLabel">Iniciando</span>
+          <span class="pp-pct" id="ppPct"></span>
+        </div>
+      </div>
+      <div class="pp-progress-bar"><div class="pp-progress-fil" id="ppProgFil"></div></div>
+      <div class="pp-body" id="ppLog"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════
+     SECCIÓN 1 — MAPA INTERACTIVO
+     ════════════════════════════════════════════════════════ -->
+<section id="mapa">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">01 — Mapa de tendencias</div>
+      <h2>Dónde crece, <em>región por región</em></h2>
+      <p>Intensidad de demanda por estilo y mercado. Pasa el cursor sobre una región para ver el detalle.</p>
+    </div>
+
+    <div class="map-shell">
+      <!-- Lateral izquierdo: País + Estilo -->
+      <div class="map-side">
+        <div class="side-block">
+          <div class="side-label">Mercado</div>
+          <div class="country-btns" id="countryBtns"></div>
+        </div>
+        <div class="side-block">
+          <div class="side-label">Estilo</div>
+          <div class="style-list" id="styleList"></div>
+        </div>
+      </div>
+
+      <!-- Mapa central (Leaflet + heatmap glow + iconos) -->
+      <div class="map-canvas">
+        <div class="map-header">
+          <div>
+            <div class="map-title"><em id="mapTitleStyle">Bikini Asimétrico</em> · pronóstico de tendencia</div>
+            <div class="map-sub" id="mapSub">España · datos en tiempo real</div>
+          </div>
+          <div style="text-align:right">
+            <div class="map-sub" style="margin:0">Semana</div>
+            <div class="mono" style="font-size:13px;color:var(--terracotta);font-weight:500" id="mapWeek">—</div>
+          </div>
+        </div>
+        <div style="position:relative;flex:1">
+          <div id="leafletMap"></div>
+          <div class="map-badge"><span class="badge-dot" id="mapBadgeDot"></span><span id="mapBadgeSrc">Datos de referencia</span> · <em id="badgeStyle">Asimétrico</em></div>
+          <div class="map-legend">
+            <span class="leglbl">Frío</span>
+            <div class="legbar"></div>
+            <span class="leglbl">Caliente</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lateral derecho: Top regiones -->
+      <div class="map-side">
+        <div class="side-block">
+          <div class="side-label">Top regiones</div>
+          <div class="rank-block" id="rankBlock"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════
+     SECCIÓN 2 — MODELO AI
+     ════════════════════════════════════════════════════════ -->
+<section id="ai">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">02 — Modelo predictivo</div>
+      <h2>Sube una imagen.<br>Recibe una <em>decisión</em>.</h2>
+      <p>Red neuronal jerárquica (ResNet18) entrenada sobre 13 categorías de moda de baño. Devuelve clase, confianza, paleta dominante y acción recomendada.</p>
+    </div>
+
+    <div class="ai-grid">
+      <!-- Input -->
+      <div class="ai-card">
+        <div class="eyebrow" style="margin-bottom:16px">Imagen de entrada</div>
+
+        <label for="fileIn" class="drop" id="dropZone">
+          <div class="drop-icon italic">↑</div>
+          <div class="drop-txt">Arrastra o haz clic para subir</div>
+          <div class="drop-hint">JPG / PNG · máx. 10MB</div>
+          <img id="preview" alt="">
+        </label>
+        <input type="file" id="fileIn" accept="image/*" hidden>
+
+        <button class="cta" id="btnAnalyze" disabled>
+          <span>Analizar imagen</span>
+        </button>
+        <div class="loader" id="aiLoad">analizando con ResNet18 · 13 clases…</div>
+
+        <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--sand-10);font-size:12px;color:var(--ink-60);line-height:1.7">
+          <strong style="color:var(--ink-90)">Modelo:</strong> <span id="aiModelName" class="mono">—</span><br>
+          <strong style="color:var(--ink-90)">Clases:</strong> <span id="aiModelClasses" class="mono">—</span><br>
+          <strong style="color:var(--ink-90)">Endpoint:</strong> <span class="mono">localhost:5055/api/analyze</span>
+        </div>
+      </div>
+
+      <!-- Output -->
+      <div class="ai-card terra">
+        <div class="eyebrow" style="margin-bottom:16px">Veredicto</div>
+
+        <div id="emptyState" style="text-align:center;padding:48px 24px;color:var(--ink-60)">
+          <div style="font-family:var(--display);font-size:64px;font-style:italic;color:var(--terracotta-soft);line-height:1">·</div>
+          <p style="margin-top:12px;font-size:14px">El análisis aparecerá aquí</p>
+        </div>
+
+        <div id="aiError" style="display:none;background:#fff;border:1px solid var(--rojo-sangria);border-left:4px solid var(--rojo-sangria);border-radius:6px;padding:18px 22px">
+          <div style="font:600 12px var(--text);letter-spacing:0.16em;text-transform:uppercase;color:var(--rojo-sangria);margin-bottom:8px">Error del modelo</div>
+          <div id="aiErrorMsg" style="font-family:var(--mono);font-size:12px;color:var(--ink-90);margin-bottom:10px;word-break:break-word"></div>
+          <div id="aiErrorHint" style="font-size:13px;color:var(--ink-60);line-height:1.5"></div>
+        </div>
+
+        <div class="verdict" id="verdict">
+          <div class="v-eyebrow">Clase predicha</div>
+          <div class="v-class italic" id="vClass">—</div>
+          <div class="v-conf mono" id="vConf">— confianza</div>
+
+          <div class="confbar"><div class="conffil" id="vBar" style="width:0%"></div></div>
+
+          <div class="eyebrow" style="margin:24px 0 12px">Top-3 hipótesis</div>
+          <div class="top3" id="top3"></div>
+
+          <div class="eyebrow" style="margin:0 0 12px">Paleta dominante</div>
+          <div class="colors-row" id="colors"></div>
+
+          <div class="action-box">
+            <div class="action-label">Acción recomendada</div>
+            <div class="action-txt" id="vAction">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════
+     SECCIÓN 3 — WEBSCRAPING + FORECASTING
+     ════════════════════════════════════════════════════════ -->
+<section id="forecast">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">03 — Ingesta de datos &amp; forecasting</div>
+      <h2>De la web abierta a la <em>predicción</em>.</h2>
+      <p>Selecciona fuentes externas, ejecuta el scraping y genera un forecast de 12 meses sobre el CSV resultante. Los datos alimentan los mapas y el modelo de tendencias.</p>
+    </div>
+
+    <div class="scrape-grid">
+      <!-- Controles -->
+      <div>
+        <div class="ai-card">
+          <div class="eyebrow" style="margin-bottom:8px">Fuente</div>
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--sand-05);border-radius:6px;margin-bottom:18px">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--olivo);box-shadow:0 0 6px var(--olivo)"></div>
+            <div>
+              <div style="font:600 13px var(--text);color:var(--ink-90)">Google Trends</div>
+              <div class="mono" style="font-size:10px;color:var(--ink-60)">pytrends · datos reales</div>
+            </div>
+          </div>
+
+          <div class="eyebrow" style="margin-bottom:10px">Categorías</div>
+          <div id="sourceList"></div>
+
+          <div class="eyebrow" style="margin:20px 0 10px">Keywords personalizadas <span style="color:var(--ink-30);font-weight:400;letter-spacing:0;text-transform:none">(opcional, sustituyen las anteriores)</span></div>
+          <input type="text" class="scrape-input" id="kwInput" placeholder="Ej: bikini asimétrico, bikini tanga">
+
+          <div class="eyebrow" style="margin:20px 0 10px">Mercado</div>
+          <select class="scrape-input" id="geoInput"></select>
+
+          <div class="eyebrow" style="margin:20px 0 10px">Ventana temporal</div>
+          <select class="scrape-input" id="rangeInput">
+            <option value="today 3-m">Últimos 3 meses</option>
+            <option value="today 12-m" selected>Últimos 12 meses</option>
+            <option value="today 5-y">Últimos 5 años</option>
+          </select>
+
+          <button class="cta" id="btnScrape" style="margin-top:24px">
+            <span>Scrapear Google Trends</span>
+          </button>
+
+          <div class="progress-shell" id="progShell">
+            <div class="prog-row">
+              <span id="progLabel">Conectando…</span>
+              <span id="progPct">0%</span>
+            </div>
+            <div class="prog-bar"><div class="prog-fil" id="progFil"></div></div>
+            <div class="prog-log" id="progLog"></div>
+          </div>
+
+          <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--sand-10);font-size:11px;color:var(--ink-60);line-height:1.7">
+            <div class="eyebrow" style="margin-bottom:8px">CSVs guardados</div>
+            <div id="savedCsvs">Cargando…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Output: tabs CSV / Forecast -->
+      <div>
+        <div class="tabs">
+          <button class="tab on" data-tab="csv">CSV resultante</button>
+          <button class="tab" data-tab="fc">Forecast 12m</button>
+        </div>
+
+        <!-- CSV -->
+        <div class="csv-shell" id="csvShell">
+          <div class="csv-head">
+            <div class="csv-meta">
+              <strong id="csvName">—</strong>
+              <span id="csvInfo" style="margin-left:8px"></span>
+            </div>
+            <div class="csv-actions">
+              <button class="btn-sm" id="btnDownload">Descargar .csv</button>
+              <select class="btn-sm" id="fcHorizon" title="Horizonte del forecast" style="padding:6px 10px;cursor:pointer">
+                <option value="3">Próximos 3 meses</option>
+                <option value="6" selected>Próximos 6 meses</option>
+                <option value="12">Próximos 12 meses</option>
+              </select>
+              <button class="btn-sm solid" id="btnRunForecast">Generar forecast</button>
+            </div>
+          </div>
+          <!-- Selector de categoría para forecast (aparece tras scraping) -->
+          <div class="fc-cat-selector" id="fcCatSelector">
+            <div class="fc-cat-label-hd">Categoría a forecastear</div>
+            <div class="fc-cat-btns" id="fcCatBtns"></div>
+          </div>
+          <!-- Hint estacional por país/prenda -->
+          <div class="seasonal-hint" id="seasonalHint">
+            <span id="seasonalHintTxt">Estacionalidad aplicada según mercado y prenda.</span>
+          </div>
+          <div style="max-height:380px;overflow-y:auto">
+            <table class="csv-table" id="csvTable"></table>
+          </div>
+        </div>
+
+        <div id="csvEmpty" style="background:#fff;border:1px dashed var(--sand-20);border-radius:8px;padding:80px 24px;text-align:center;color:var(--ink-30)">
+          <div style="font-family:var(--display);font-size:48px;font-style:italic;color:var(--sand-20);line-height:1">·</div>
+          <p style="margin-top:12px;font-size:14px">Inicia un scraping para ver el CSV aquí</p>
+        </div>
+
+        <!-- Forecast -->
+        <div class="forecast-shell" id="fcShell">
+          <div class="fc-head">
+            <div>
+              <div class="fc-title" id="fcTitle">Forecast 12 meses</div>
+              <div class="fc-sub" id="fcSub">Holt-Winters · estacionalidad anual</div>
+          <div id="fcFlatWarn" style="display:none;margin-top:6px;padding:6px 10px;background:rgba(184,137,58,.1);border-left:3px solid var(--oro-quemado);border-radius:4px;font-size:11px;color:var(--ink-60)">⚠ Serie con volumen muy bajo — Google Trends devolvió valores cercanos a 0. El forecast refleja la ausencia de señal, no un error del modelo. Prueba con un rango temporal mayor (12m) o una keyword de mayor volumen.</div>
+            </div>
+            <div class="fc-stats">
+              <div class="fc-stat">
+                <div class="v" id="fcDelta">—</div>
+                <div class="l">Variación próximos 12m</div>
+              </div>
+              <div class="fc-stat">
+                <div class="v" id="fcPeak">—</div>
+                <div class="l">Pico previsto</div>
+              </div>
+            </div>
+          </div>
+          <canvas id="forecastChart"></canvas>
+          <div class="fc-insight">
+            <div class="fc-i-icon">¶</div>
+            <div class="fc-i-txt" id="fcInsight">Análisis del forecast aparecerá aquí…</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════
+     FOOTER
+     ════════════════════════════════════════════════════════ -->
+<footer>
+  <div class="foot">
+    <div>
+      <div class="foot-logo">LOVSUN</div>
+      <div class="foot-meta" style="margin-top:4px">intelligence engine · SS26 · v7.0</div>
+    </div>
+    <div class="foot-meta">Cormorant + Inter · v7.0 · <span id="footLastRun">—</span></div>
+  </div>
+</footer>
+
+<div id="tip"></div>
+
+<!-- ════════════════════════════════════════════════════════
+     LÓGICA
+     ════════════════════════════════════════════════════════ -->
+<script>
+const SERVER = 'http://localhost:5055';
+
+/* ── ICONOS SVG (representan visualmente cada corte) ───── */
+const ICONS = {
+  asimetrico: `<svg viewBox="0 0 30 30" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6,11 Q4,7 7,4 L11,3 Q14,7 15,10 Q16,7 19,3 L23,4 Q26,7 24,11"/>
+    <path d="M6,11 Q5,20 10,24 Q13,27 15,28 Q17,27 20,24 Q25,20 24,11"/>
+    <path d="M15,10 L15,28" stroke-width=".9" stroke-dasharray="2,2" opacity=".5"/>
+  </svg>`,
+  triangulo: `<svg viewBox="0 0 30 30" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M7,5 L15,14 L23,5 Z"/>
+    <line x1="7" y1="5" x2="5" y2="2.5"/>
+    <line x1="23" y1="5" x2="25" y2="2.5"/>
+    <path d="M7,16 Q10,22 15,24 Q20,22 23,16"/>
+    <line x1="7" y1="16" x2="5" y2="16"/>
+    <line x1="23" y1="16" x2="25" y2="16"/>
+  </svg>`,
+  hotpants: `<svg viewBox="0 0 30 30" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6,10 Q15,7 24,10 L24,23 Q21,29 15,29 Q9,29 6,23 Z"/>
+    <line x1="15" y1="10" x2="15" y2="29" stroke-width=".9" stroke-dasharray="2,2" opacity=".4"/>
+    <path d="M6.5,10 Q15,8 23.5,10" stroke-width="1.1" opacity=".55"/>
+  </svg>`,
+  cutout: `<svg viewBox="0 0 30 30" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M9,3 L9,28 Q15,31 21,28 L21,3 Q15,0 9,3 Z"/>
+    <path d="M9,14 Q12,10 15,14 Q18,18 21,14"/>
+    <line x1="9" y1="3" x2="7" y2=".5"/>
+    <line x1="21" y1="3" x2="23" y2=".5"/>
+  </svg>`,
+  clasico: `<svg viewBox="0 0 30 30" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M9,4 Q15,2 21,4 L23,13 Q21,24 15,29 Q9,24 7,13 Z"/>
+    <line x1="9" y1="4" x2="7" y2="1.5"/>
+    <line x1="21" y1="4" x2="23" y2="1.5"/>
+    <path d="M10,12 Q15,10.5 20,12" stroke-width="1.1" opacity=".55"/>
+  </svg>`,
+  top: `<svg viewBox="0 0 30 30" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M7,5 Q15,2 23,5 L22,12 Q18,10 15,11 Q12,10 8,12 Z"/>
+    <line x1="7" y1="5" x2="5" y2="2.5"/>
+    <line x1="23" y1="5" x2="25" y2="2.5"/>
+    <path d="M8,12 Q15,15 22,12"/>
+  </svg>`,
+  bañador_asimétrico: `<svg viewBox="0 0 30 30" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M19,3 L23,4 Q26,7 24,11 Q20,24 15,28 Q10,24 7,13 Q5,7 9,4 L13,3"/>
+    <path d="M13,3 Q15,7 15,10 Q16,7 19,3"/>
+    <path d="M15,10 L15,28" stroke-width=".9" stroke-dasharray="2,2" opacity=".4"/>
+  </svg>`,
+  monokini: `<svg viewBox="0 0 30 30" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M9,4 Q15,2 21,4 L22,11 Q19,8 15,9 Q11,8 8,11 Z"/>
+    <line x1="9" y1="4" x2="7" y2="1.5"/>
+    <line x1="21" y1="4" x2="23" y2="1.5"/>
+    <path d="M8,11 Q7,15 8,18 Q11,14 15,15 Q19,14 22,18 Q23,15 22,11"/>
+    <path d="M8,18 Q9,26 15,29 Q21,26 22,18"/>
+  </svg>`
+};
+
+/* ── DATOS DE ESTILOS ───────────────────────────────────── */
+const STYLES = {
+  asimetrico: {
+    name: 'Bikini Asimétrico', score: 96, trend: '+18%',
+    glow: '#E07B5C',
+    action: 'Incrementar stock Baleares y Madrid. Activar campaña ES+PT. Producir segundo lote antes de julio.',
+    hist: [45,48,42,50,55,52,58,60,56,62,65,60,68,72,70,75,78,74,80,82,78,85,88,84,90,92,88,94,96,92,95,98]
+  },
+  triangulo: {
+    name: 'Bikini Triángulo', score: 82, trend: '+9%',
+    glow: '#C75B3C',
+    action: 'Mantener producción Mediterráneo. TikTok/Reels segmento 18–28. Volumen estable.',
+    hist: [38,42,40,45,48,46,52,55,50,58,60,56,62,65,68,70,66,72,75,72,78,80,76,82,84,80,86,88,84,88,90,86]
+  },
+  hotpants: {
+    name: 'Bikini Hot Pants', score: 74, trend: '+3%',
+    glow: '#B98DD6',
+    action: 'Testear mercado Brasil y Reino Unido con micro-influencers. Esperar al Q3 para decidir escalado.',
+    hist: [55,58,56,60,62,58,65,68,64,70,72,68,74,76,72,78,75,72,76,74,72,76,74,72,76,74,78,76,74,78,76,74]
+  },
+  cutout: {
+    name: 'Bañador Cut-Out', score: 68, trend: '+24%',
+    glow: '#5A8FA6',
+    action: 'Oportunidad emergente. Lanzar campaña primavera ES/IT. Retargeting 25–38, foco mujer urbana.',
+    hist: [22,25,28,30,28,32,35,38,35,40,42,45,48,45,50,52,55,52,58,60,62,58,65,68,65,70,72,68,74,76,72,75]
+  },
+  clasico: {
+    name: 'Bañador Clásico', score: 52, trend: '-6%',
+    glow: '#B8893A',
+    action: 'Producto base. No invertir en crecimiento. Mantener oferta en mercados maduros DE/FR.',
+    hist: [72,70,74,72,68,72,70,68,72,70,68,72,70,68,72,70,68,72,70,68,65,68,65,62,65,62,60,62,60,58,60,58]
+  },
+  top: {
+    name: 'Bikini Top', score: 60, trend: '+5%',
+    glow: '#5A8FA6',
+    action: 'Probar campaña primavera. Volumen emergente. Testear en ES/BR antes de escalar.',
+    hist: [30,32,35,33,38,40,38,42,44,40,46,48,45,50,52,48,54,56,52,58,60,56,62,64,60,65,67,63,68,70,66,68]
+  },
+  bañador_asimétrico: {
+    name: 'Bañador Asimétrico', score: 58, trend: '+12%',
+    glow: '#C75B3C',
+    action: 'Categoría emergente premium. Lanzar cápsula limitada. Retargeting 28-40 mujer urbana.',
+    hist: [20,22,25,24,28,30,28,32,35,32,38,40,37,42,44,40,46,48,44,50,52,48,54,56,52,58,60,56,62,64,60,65]
+  },
+  monokini: {
+    name: 'Bañador Cut-Out / Monokini', score: 65, trend: '+18%',
+    glow: '#7C8C5C',
+    action: 'Oportunidad creciente. Retargeting 25–38 mujer urbana ES/IT. Lanzar antes de junio.',
+    hist: [25,28,30,28,32,35,33,38,40,37,42,44,40,46,48,44,50,52,48,55,58,54,60,62,58,65,68,64,70,72,68,72]
+  }
+};
+
+/* ── MAPAS POR PAÍS (coordenadas reales lat/lng para Leaflet) ─ */
+const MAPS = {
+  ES: {
+    label: 'España', flag: '🇪🇸',
+    center: [40.0, -3.5], zoom: 6, minZoom: 5, maxZoom: 8,
+    cities: [
+      {name:'Madrid',         lat:40.4168, lng:-3.7038},
+      {name:'Barcelona',      lat:41.3851, lng: 2.1734},
+      {name:'Valencia',       lat:39.4699, lng:-0.3763},
+      {name:'Ibiza',          lat:38.9067, lng: 1.4206},
+      {name:'Palma',          lat:39.5696, lng: 2.6502},
+      {name:'Sevilla',        lat:37.3891, lng:-5.9845},
+      {name:'Málaga',         lat:36.7213, lng:-4.4214},
+      {name:'San Sebastián',  lat:43.3183, lng:-1.9812},
+      {name:'Bilbao',         lat:43.2630, lng:-2.9350},
+      {name:'A Coruña',       lat:43.3623, lng:-8.4115},
+      {name:'Granada',        lat:37.1773, lng:-3.5986},
+      {name:'Las Palmas',     lat:28.1235, lng:-15.4366}
+    ],
+    weights: {
+      asimetrico: {Madrid:85,Barcelona:96,Valencia:92,Ibiza:100,Palma:95,Sevilla:80,Málaga:88,'San Sebastián':62,Bilbao:65,'A Coruña':45,Granada:72,'Las Palmas':82},
+      triangulo:  {Madrid:70,Barcelona:90,Valencia:88,Ibiza:96,Palma:90,Sevilla:74,Málaga:82,'San Sebastián':55,Bilbao:58,'A Coruña':40,Granada:65,'Las Palmas':75},
+      hotpants:   {Madrid:55,Barcelona:72,Valencia:75,Ibiza:80,Palma:76,Sevilla:62,Málaga:70,'San Sebastián':45,Bilbao:48,'A Coruña':35,Granada:55,'Las Palmas':60},
+      cutout:     {Madrid:55,Barcelona:68,Valencia:72,Ibiza:75,Palma:70,Sevilla:60,Málaga:65,'San Sebastián':50,Bilbao:55,'A Coruña':42,Granada:52,'Las Palmas':62},
+      clasico:    {Madrid:40,Barcelona:48,Valencia:48,Ibiza:38,Palma:42,Sevilla:42,Málaga:40,'San Sebastián':62,Bilbao:60,'A Coruña':58,Granada:50,'Las Palmas':42},
+      top:               {Madrid:62,Barcelona:78,Valencia:70,Ibiza:72,Palma:68,Sevilla:58,Málaga:65,'San Sebastián':48,Bilbao:52,'A Coruña':40,Granada:55,'Las Palmas':60},
+      bañador_asimétrico:{Madrid:55,Barcelona:70,Valencia:65,Ibiza:75,Palma:70,Sevilla:55,Málaga:62,'San Sebastián':45,Bilbao:48,'A Coruña':38,Granada:52,'Las Palmas':58},
+      bañador_clásico:   {Madrid:40,Barcelona:48,Valencia:48,Ibiza:38,Palma:42,Sevilla:42,Málaga:40,'San Sebastián':62,Bilbao:60,'A Coruña':58,Granada:50,'Las Palmas':42},
+      monokini:          {Madrid:58,Barcelona:72,Valencia:68,Ibiza:70,Palma:65,Sevilla:58,Málaga:65,'San Sebastián':50,Bilbao:52,'A Coruña':42,Granada:55,'Las Palmas':62}
+    }
+  },
+  EU: {
+    label: 'Europa', flag: '🇪🇺',
+    center: [47, 7], zoom: 4, minZoom: 3, maxZoom: 6,
+    cities: [
+      {name:'Madrid',     lat:40.42, lng:-3.70},
+      {name:'Barcelona',  lat:41.39, lng: 2.17},
+      {name:'Lisboa',     lat:38.72, lng:-9.14},
+      {name:'París',      lat:48.85, lng: 2.35},
+      {name:'Milán',      lat:45.46, lng: 9.19},
+      {name:'Roma',       lat:41.90, lng:12.50},
+      {name:'Niza',       lat:43.71, lng: 7.26},
+      {name:'Berlín',     lat:52.52, lng:13.40},
+      {name:'Londres',    lat:51.51, lng:-0.13},
+      {name:'Ámsterdam',  lat:52.37, lng: 4.89},
+      {name:'Atenas',     lat:37.98, lng:23.72},
+      {name:'Estocolmo',  lat:59.33, lng:18.06}
+    ],
+    weights: {
+      asimetrico: {Madrid:88,Barcelona:96,Lisboa:78,París:60,Milán:80,Roma:82,Niza:92,Berlín:48,Londres:55,Ámsterdam:42,Atenas:85,Estocolmo:35},
+      triangulo:  {Madrid:75,Barcelona:90,Lisboa:72,París:62,Milán:82,Roma:85,Niza:88,Berlín:42,Londres:50,Ámsterdam:40,Atenas:88,Estocolmo:32},
+      hotpants:   {Madrid:55,Barcelona:70,Lisboa:58,París:55,Milán:62,Roma:65,Niza:68,Berlín:55,Londres:68,Ámsterdam:52,Atenas:60,Estocolmo:42},
+      cutout:     {Madrid:58,Barcelona:68,Lisboa:62,París:72,Milán:75,Roma:68,Niza:70,Berlín:62,Londres:78,Ámsterdam:65,Atenas:62,Estocolmo:55},
+      clasico:    {Madrid:45,Barcelona:48,Lisboa:50,París:58,Milán:48,Roma:52,Niza:50,Berlín:72,Londres:65,Ámsterdam:68,Atenas:48,Estocolmo:75},
+      top:               {Madrid:60,Barcelona:75,Lisboa:62,París:70,Milán:78,Roma:72,Niza:80,Berlín:48,Londres:55,Ámsterdam:52,Atenas:65,Estocolmo:40},
+      bañador_asimétrico:{Madrid:55,Barcelona:68,Lisboa:58,París:65,Milán:72,Roma:68,Niza:74,Berlín:50,Londres:60,Ámsterdam:55,Atenas:62,Estocolmo:42},
+      bañador_clásico:   {Madrid:45,Barcelona:48,Lisboa:50,París:58,Milán:48,Roma:52,Niza:50,Berlín:72,Londres:65,Ámsterdam:68,Atenas:48,Estocolmo:75},
+      monokini:          {Madrid:55,Barcelona:65,Lisboa:60,París:68,Milán:72,Roma:65,Niza:70,Berlín:55,Londres:70,Ámsterdam:60,Atenas:58,Estocolmo:48}
+    }
+  },
+  BR: {
+    label: 'Brasil', flag: '🇧🇷',
+    center: [-14, -52], zoom: 4, minZoom: 3, maxZoom: 7,
+    cities: [
+      {name:'São Paulo',     lat:-23.55, lng:-46.63},
+      {name:'Rio de Janeiro',lat:-22.91, lng:-43.17},
+      {name:'Salvador',      lat:-12.97, lng:-38.50},
+      {name:'Fortaleza',     lat: -3.73, lng:-38.52},
+      {name:'Recife',        lat: -8.05, lng:-34.88},
+      {name:'Florianópolis', lat:-27.59, lng:-48.55},
+      {name:'Natal',         lat: -5.79, lng:-35.21},
+      {name:'Manaus',        lat: -3.12, lng:-60.02},
+      {name:'Brasília',      lat:-15.79, lng:-47.88}
+    ],
+    weights: {
+      asimetrico: {'São Paulo':85,'Rio de Janeiro':92,Salvador:78,Fortaleza:72,Recife:70,Florianópolis:88,Natal:68,Manaus:45,Brasília:55},
+      triangulo:  {'São Paulo':92,'Rio de Janeiro':98,Salvador:88,Fortaleza:82,Recife:80,Florianópolis:90,Natal:78,Manaus:55,Brasília:60},
+      hotpants:   {'São Paulo':92,'Rio de Janeiro':100,Salvador:88,Fortaleza:85,Recife:82,Florianópolis:90,Natal:80,Manaus:62,Brasília:65},
+      cutout:     {'São Paulo':72,'Rio de Janeiro':75,Salvador:65,Fortaleza:55,Recife:58,Florianópolis:70,Natal:52,Manaus:42,Brasília:48},
+      clasico:    {'São Paulo':45,'Rio de Janeiro':42,Salvador:42,Fortaleza:45,Recife:42,Florianópolis:52,Natal:42,Manaus:38,Brasília:48},
+      top:               {'São Paulo':80,'Rio de Janeiro':88,Salvador:75,Fortaleza:70,Recife:68,Florianópolis:82,Natal:65,Manaus:50,Brasília:58},
+      bañador_asimétrico:{'São Paulo':68,'Rio de Janeiro':78,Salvador:65,Fortaleza:58,Recife:55,Florianópolis:72,Natal:52,Manaus:42,Brasília:48},
+      bañador_clásico:   {'São Paulo':45,'Rio de Janeiro':42,Salvador:42,Fortaleza:45,Recife:42,Florianópolis:52,Natal:42,Manaus:38,Brasília:48},
+      monokini:          {'São Paulo':75,'Rio de Janeiro':80,Salvador:70,Fortaleza:65,Recife:62,Florianópolis:78,Natal:60,Manaus:48,Brasília:55}
+    }
+  },
+  US: {
+    label: 'Estados Unidos', flag: '🇺🇸',
+    center: [37, -96], zoom: 4, minZoom: 3, maxZoom: 7,
+    cities: [
+      {name:'Miami',        lat:25.76, lng: -80.19},
+      {name:'New York',     lat:40.71, lng: -74.01},
+      {name:'Los Angeles',  lat:34.05, lng:-118.24},
+      {name:'Malibu',       lat:34.03, lng:-118.69},
+      {name:'San Diego',    lat:32.72, lng:-117.16},
+      {name:'Honolulu',     lat:21.31, lng:-157.86},
+      {name:'Cancún',       lat:21.16, lng: -86.85},
+      {name:'Chicago',      lat:41.88, lng: -87.63}
+    ],
+    weights: {
+      asimetrico: {Miami:85,'New York':62,'Los Angeles':72,Malibu:75,'San Diego':70,Honolulu:90,Cancún:78,Chicago:48},
+      triangulo:  {Miami:82,'New York':55,'Los Angeles':78,Malibu:78,'San Diego':72,Honolulu:92,Cancún:80,Chicago:42},
+      hotpants:   {Miami:88,'New York':58,'Los Angeles':75,Malibu:70,'San Diego':72,Honolulu:82,Cancún:85,Chicago:45},
+      cutout:     {Miami:70,'New York':78,'Los Angeles':75,Malibu:75,'San Diego':68,Honolulu:70,Cancún:58,Chicago:62},
+      clasico:    {Miami:48,'New York':60,'Los Angeles':52,Malibu:50,'San Diego':55,Honolulu:48,Cancún:42,Chicago:65},
+      top:               {Miami:75,'New York':65,'Los Angeles':80,Malibu:82,'San Diego':75,Honolulu:85,Cancún:70,Chicago:50},
+      bañador_asimétrico:{Miami:68,'New York':62,'Los Angeles':72,Malibu:75,'San Diego':68,Honolulu:78,Cancún:65,Chicago:48},
+      bañador_clásico:   {Miami:48,'New York':60,'Los Angeles':52,Malibu:50,'San Diego':55,Honolulu:48,Cancún:42,Chicago:65},
+      monokini:          {Miami:72,'New York':70,'Los Angeles':75,Malibu:78,'San Diego':70,Honolulu:72,Cancún:62,Chicago:55}
+    }
+  }
+};
+
+/* ── Grupos de keywords (Google Trends real) ──────────────── */
+/* kws_by_geo: sinónimos regionales. Si no existe el código, usa kws por defecto. */
+const KEYWORD_GROUPS = [
+  {
+    id:'asimetrico', label:'Bikini Asimétrico / Tanga', on:true,
+    kws:['bikini asimétrico','bikini tanga'],
+    kws_by_geo:{
+      BR:['biquini assimétrico','biquini tanga'],
+      FR:['bikini asymétrique','bikini tanga'],
+      IT:['bikini asimmetrico','bikini tanga'],
+      PT:['biquini assimétrico','biquini tanga']
+    }
+  },
+  {
+    id:'triangulo', label:'Bikini Triángulo / Bandeau', on:false,
+    kws:['bikini triángulo','bikini bandeau'],
+    kws_by_geo:{
+      BR:['biquini triangulo','biquini bandeau'],
+      FR:['bikini triangle','bikini bandeau'],
+      IT:['bikini triangolo','bikini bandeau']
+    }
+  },
+  {
+    id:'cortinilla', label:'Bikini Cortinilla / Cortininha', on:false,
+    kws:['bikini cortinilla','bikini volante'],
+    kws_by_geo:{
+      BR:['bikini cortininha','biquini babado'],
+      PT:['bikini cortininha','bikini babado'],
+      ES:['bikini cortinilla','bikini volante']
+    },
+    synonymNote:{BR:'Incluye búsquedas de "bikini cortininha"', PT:'Incluye búsquedas de "bikini cortininha"'}
+  },
+  {
+    id:'hotpants', label:'Hot Pants / Talle Alto / Cintura Alta', on:false,
+    kws:['bikini hot pants','bikini talle alto'],
+    kws_by_geo:{
+      BR:['biquini hot pants','biquini cintura alta','biquini taille alto'],
+      PT:['biquini cintura alta','biquini hot pants'],
+      US:['bikini high waist','high waist bikini'],
+      GB:['high waist bikini','high waisted bikini']
+    },
+    synonymNote:{BR:'Incluye "biquini cintura alta" · pico estacional: diciembre–enero', PT:'Incluye "biquini cintura alta"'}
+  },
+  {
+    id:'cutout', label:'Bañador Cut-Out', on:false,
+    kws:['bañador cut out','swimsuit cut out'],
+    kws_by_geo:{
+      BR:['maiô cut out','maio cut out'],
+      US:['cutout swimsuit','cut out one piece'],
+      GB:['cutout swimsuit','cut out swimwear'],
+      FR:['maillot cut out','maillot découpe']
+    }
+  },
+  {
+    id:'clasico', label:'Bañador Clásico', on:false,
+    kws:['bañador clásico','bañador deportivo'],
+    kws_by_geo:{
+      BR:['maiô clássico','maiôs','maio de natação'],
+      PT:['maiô clássico','fato de banho clássico'],
+      FR:['maillot de bain classique','maillot une pièce'],
+      IT:['costume intero classico','costume da bagno intero'],
+      DE:['badeanzug klassisch','einteiliger badeanzug']
+    },
+    synonymNote:{BR:'Incluye búsquedas de "Maiôs" y "Maio de natação"', PT:'Incluye búsquedas de "Maiô clássico"'}
+  },
+  {
+    id:'monokini', label:'Bañador Cut-Out / Monokini', on:false,
+    kws:['monokini','bañador cut out'],
+    kws_by_geo:{
+      BR:['monoquini','maiô cut out','maio recortado'],
+      FR:['monokini','maillot cut out'],
+      IT:['monokini','costume cut out'],
+      US:['monokini','cutout swimsuit']
+    }
+  },
+  {
+    id:'top', label:'Bikini Top', on:false,
+    kws:['bikini top','top de bikini'],
+    kws_by_geo:{
+      BR:['biquini top','top de biquini'],
+      US:['bikini top','swim top'],
+      GB:['bikini top','swimwear top'],
+      FR:['haut de bikini','bikini top']
+    }
+  },
+  {
+    id:'bañador_asimétrico', label:'Bañador Asimétrico', on:false,
+    kws:['bañador asimétrico','one shoulder swimsuit'],
+    kws_by_geo:{
+      BR:['maiô assimétrico','maio um ombro só'],
+      FR:['maillot asymétrique','maillot une épaule'],
+      IT:['costume asimmetrico','costume monospalla'],
+      US:['one shoulder swimsuit','asymmetric swimsuit']
+    }
+  },
+  {
+    id:'bañador_clásico', label:'Bañador Clásico (pipeline)', on:false,
+    kws:['bañador clásico','bañador entero'],
+    kws_by_geo:{
+      BR:['maiô clássico','fato de banho clássico'],
+      FR:['maillot de bain classique'],
+      IT:['costume intero classico'],
+      DE:['badeanzug klassisch']
+    },
+    synonymNote:{BR:'Alias del pipeline: bañador_clásico'}
+  }
+];
+
+/* Devuelve las keywords para un grupo dado el geo actual */
+function getKeywordsForGeo(group, geo){
+  if(group.kws_by_geo && group.kws_by_geo[geo]) return group.kws_by_geo[geo];
+  return group.kws;
+}
+
+/* Países disponibles en Google Trends */
+const GEOS = [
+  {code:'ES', name:'España'},
+  {code:'BR', name:'Brasil'},
+  {code:'FR', name:'Francia'},
+  {code:'IT', name:'Italia'},
+  {code:'PT', name:'Portugal'},
+  {code:'GB', name:'Reino Unido'},
+  {code:'US', name:'Estados Unidos'},
+  {code:'DE', name:'Alemania'}
+];
+
+/* ── ESTADO ─────────────────────────────────────────────── */
+let state = {
+  country: 'ES',
+  style: 'asimetrico',
+  csv: null,
+  fcChart: null,
+  snapshot: null,        // ← datos del último daily (poblan el mapa)
+  snapshotAge: null,     // horas desde la última ejecución
+  marketFilter: 'ALL',   // filtro del toggle de mercado: ALL | ES | BR | COMPARE
+  fcSelectedCol: null    // columna seleccionada para el forecast
+};
+
+/* ════════════════════════════════════════════════════════
+   SECCIÓN 1 — MAPA
+   ════════════════════════════════════════════════════════ */
+
+function renderCountries(){
+  const html = Object.entries(MAPS).map(([k,m]) =>
+    `<button class="cbtn ${k===state.country?'on':''}" data-c="${k}"><span class="flag">${m.flag}</span>${m.label}</button>`
+  ).join('');
+  document.getElementById('countryBtns').innerHTML = html;
+  document.querySelectorAll('.cbtn').forEach(b => b.onclick = () => {
+    state.country = b.dataset.c;
+    renderCountries();
+    renderMap();
+  });
+}
+
+function getIcon(styleKey){
+  return ICONS[styleKey] || ICONS['clasico'] || '';
+}
+
+function renderStyles(){
+  const html = Object.entries(STYLES).map(([k,s]) =>
+    `<div class="sitem ${k===state.style?'on':''}" data-s="${k}">
+       <div class="s-ic" style="color:${s.glow};border-color:${s.glow}">${getIcon(k)}</div>
+       <div class="sname"><em>${s.name.split(' ')[0]}</em> ${s.name.split(' ').slice(1).join(' ')}</div>
+       <div class="sscore">${s.score}</div>
+     </div>`
+  ).join('');
+  document.getElementById('styleList').innerHTML = html;
+  document.querySelectorAll('.sitem').forEach(it => it.onclick = () => {
+    state.style = it.dataset.s;
+    renderStyles();
+    renderMap();
+  });
+}
+
+/* ── Leaflet init ───────────────────────────────────────── */
+function initLeafletMap(){
+  if(state.leafletMap) return state.leafletMap;
+
+  const m = MAPS[state.country];
+  const map = L.map('leafletMap', {
+    center: m.center,
+    zoom: m.zoom,
+    minZoom: m.minZoom,
+    maxZoom: m.maxZoom,
+    zoomControl: true,
+    attributionControl: true,
+    scrollWheelZoom: true
+  });
+
+  // Tiles realistas estilo "predicción del tiempo" — Esri World Topo (relieve + costa + ciudades)
+  L.tileLayer(
+    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+    {
+      attribution: '© Esri · LOVSUN',
+      maxZoom: 13
+    }
+  ).addTo(map);
+
+  state.leafletMap = map;
+  state.heatLayer = null;
+  state.markerLayer = L.layerGroup().addTo(map);
+  return map;
+}
+
+/* ── Gradiente heatmap: frío (gris/azul) → templado (oro) → caliente (naranja/rojo) ─ */
+/* Escala coherente: 0-20 = gris/azul, 40-60 = oro, 70-100 = naranja/rojo              */
+const HEAT_GRADIENT = {
+  0.00: 'rgba(136,152,168,0)',    // gris frío transparente
+  0.15: 'rgba(136,152,168,0.45)',// gris azulado frío
+  0.25: '#8898A8',                // gris azulado (interés muy bajo)
+  0.38: '#5A8FA6',                // azul templado
+  0.52: '#E8C97A',                // oro cálido (interés medio)
+  0.68: '#E07B5C',                // coral (interés alto)
+  0.82: '#C75B3C',                // terracota (muy alto)
+  1.00: '#9B2D3F'                 // rojo sangría (interés máximo)
+};
+
+/**
+ * Calcula los pesos por ciudad combinando:
+ *   1. El "perfil de distribución" relativo de cada ciudad (hardcoded en MAPS)
+ *   2. El nivel real del scraping diario para este país+estilo
+ *
+ * Cuando hay snapshot fresco, las intensidades del mapa REFLEJAN el último
+ * scraping de Google Trends — sin que el usuario tenga que pulsar nada.
+ * Como en la previsión del tiempo: los datos ya están ahí.
+ */
+function computeMapWeights(mapObj, styleObj){
+  const styleKey = state.style;
+  const baseWeights = mapObj.weights[styleKey];  // pesos relativos de referencia (0-100)
+
+  if(!state.snapshot){
+    return baseWeights;  // sin scraping, usamos los de referencia
+  }
+
+  const geoBlock = state.snapshot.by_geo?.[state.country];
+  const styleData = geoBlock?.styles?.[styleKey];
+  if(!styleData){
+    return baseWeights;  // este país/estilo no estaba en el snapshot
+  }
+
+  // current_value del scraping (0-100, Google Trends index). Centramos en 50.
+  const real = styleData.current_value || 50;
+  const scale = real / 50;  // 1.0 = neutral, >1 = caliente, <1 = frío
+
+  // Aplica el escalado a cada ciudad manteniendo su distribución relativa
+  const scaled = {};
+  for(const [city, baseVal] of Object.entries(baseWeights)){
+    scaled[city] = Math.max(5, Math.min(100, Math.round(baseVal * scale)));
+  }
+  return scaled;
+}
+
+/**
+ * Etiqueta del subtítulo del mapa según si hay scraping fresco o no.
+ */
+function snapshotSourceLabel(){
+  if(!state.snapshot){
+    return 'datos de referencia · ejecuta el pipeline diario para activar Google Trends';
+  }
+  const styleData = state.snapshot.by_geo?.[state.country]?.styles?.[state.style];
+  if(!styleData){
+    return `snapshot del ${formatDate(state.snapshot.started_at)} · este mercado no scrapeado`;
+  }
+  const age = state.snapshotAge || 0;
+  const ageStr = age < 1 ? `${Math.round(age*60)} min` : age < 48 ? `${Math.round(age)}h` : `${Math.round(age/24)} días`;
+  return `Google Trends · scraping hace ${ageStr} · score país ${styleData.current_value.toFixed(0)}`;
+}
+
+function formatDate(iso){
+  return new Date(iso).toLocaleDateString('es-ES', {day:'numeric', month:'short'});
+}
+
+function renderMap(){
+  const m = MAPS[state.country];
+  const s = STYLES[state.style];
+
+  // ¿Tenemos datos del scraping diario para este país/estilo?
+  // Si sí, escalamos los pesos relativos de cada ciudad por el valor real
+  // del Google Trends de hoy. Si no, usamos los pesos hardcoded de referencia.
+  const w = computeMapWeights(m, s);
+
+  // Cabecera
+  document.getElementById('mapTitleStyle').textContent = s.name;
+  document.getElementById('mapSub').textContent = `${m.label} · ${snapshotSourceLabel()}`;
+  document.getElementById('badgeStyle').textContent = s.name.replace(/^(Bikini|Bañador)\s/, '');
+  document.getElementById('mapWeek').textContent = currentWeekLabel();
+
+  // Badge: ¿datos reales o de referencia?
+  const hasRealData = !!(state.snapshot?.by_geo?.[state.country]?.styles?.[state.style]);
+  const badgeSrc = document.getElementById('mapBadgeSrc');
+  const badgeDot = document.getElementById('mapBadgeDot');
+  if(hasRealData){
+    badgeSrc.textContent = 'Google Trends · datos reales';
+    badgeDot.style.background = 'var(--olivo)';
+    badgeDot.style.boxShadow = '0 0 8px var(--olivo)';
+  } else {
+    badgeSrc.textContent = 'Datos de referencia';
+    badgeDot.style.background = 'var(--terracotta)';
+    badgeDot.style.boxShadow = '0 0 8px var(--terracotta)';
+  }
+
+  // Init mapa si no existe; si cambió el país, recentrar
+  const map = initLeafletMap();
+  map.setView(m.center, m.zoom);
+
+  // Heatmap layer — usa coordenadas reales + peso
+  if(state.heatLayer){
+    map.removeLayer(state.heatLayer);
+  }
+  const heatPoints = m.cities.map(c => {
+    const v = w[c.name] ?? 30;
+    return [c.lat, c.lng, v / 100];  // leaflet.heat espera intensidad 0-1
+  });
+  state.heatLayer = L.heatLayer(heatPoints, {
+    radius: 55,
+    blur: 45,
+    maxZoom: 9,
+    minOpacity: 0.35,
+    gradient: HEAT_GRADIENT
+  }).addTo(map);
+
+  // Marcadores con iconos circulares glow (estilo TV weather + iconos prenda)
+  state.markerLayer.clearLayers();
+  const ranked = [...m.cities].sort((a,b) => (w[b.name]??0)-(w[a.name]??0));
+
+  // Mostrar TODAS las ciudades — las de bajo interés con opacidad reducida
+  ranked.forEach(c => {
+    const v = w[c.name] ?? 20;
+    const isDim = v < 30;
+    const glowColor = heatmapColorForValue(v);
+    const opacity = isDim ? 0.45 : 1;
+    const iconHtml = `
+      <div class="bk-marker" style="color:${glowColor};opacity:${opacity}">
+        <div class="bk-bubble" style="border-color:${glowColor}">${getIcon(state.style)}</div>
+        <div class="bk-label">${c.name}</div>
+      </div>`;
+    const icon = L.divIcon({
+      html: iconHtml,
+      className: '',
+      iconSize: [46, 70],
+      iconAnchor: [23, 23]
+    });
+    const marker = L.marker([c.lat, c.lng], {icon}).addTo(state.markerLayer);
+    const verdictTxt = trendVerdict(v);
+    const hasReal = !!(state.snapshot?.by_geo?.[state.country]?.styles?.[state.style]);
+    const srcNote = hasReal ? '📡 Google Trends · datos reales' : '📁 Datos de referencia';
+    marker.bindPopup(`
+      <div class="pop-name">${c.name}</div>
+      <div class="pop-row"><span>Interés</span><span class="pop-val ${v>70?'hot':''}">${v}/100</span></div>
+      <div class="pop-row"><span>Estado</span><span class="pop-val">${verdictTxt}</span></div>
+      <div class="pop-row"><span>Estilo</span><span class="pop-val">${s.name}</span></div>
+      <div class="pop-row" style="margin-top:6px;padding-top:6px;border-top:1px solid var(--sand-10)"><span style="color:var(--ink-30);font-size:10px">${srcNote}</span></div>
+    `, {className: 'lovsun-popup', closeButton: false, offset: [0, -16]});
+  });
+
+  // Ranking lateral — ciudades con interés 0 o muy bajo quedan en gris
+  document.getElementById('rankBlock').innerHTML = ranked.map((r,i) => {
+    const val = w[r.name] ?? 0;
+    const isDim = val < 25;
+    const arrowIcon = val >= 70 ? '↑↑' : val >= 50 ? '↑' : val >= 35 ? '→' : val >= 20 ? '↓' : '↓↓';
+    const arrowCls = val >= 70 ? 'color:var(--terracotta)' : val >= 50 ? 'color:var(--olivo)' : val >= 35 ? 'color:var(--mar-medio)' : 'color:var(--ink-30)';
+    return `<div class="rrow" data-city="${r.name}" style="${isDim?'opacity:.38':''}">
+       <div class="rrk ${i<3&&!isDim?'gold':''}">${String(i+1).padStart(2,'0')}</div>
+       <div class="rnm">${r.name}</div>
+       <div class="rbar"><div class="rfil" style="width:${val}%;background:${heatmapColorForValue(val)}"></div></div>
+       <div style="display:flex;align-items:center;gap:3px">
+         <div class="rvl">${val}</div>
+         <span style="font-size:9px;font-weight:700;${arrowCls}">${arrowIcon}</span>
+       </div>
+     </div>`;
+  }).join('');
+  // Click en ranking → centra mapa en esa ciudad
+  document.querySelectorAll('.rrow').forEach(row => row.onclick = () => {
+    const city = m.cities.find(c => c.name === row.dataset.city);
+    if(city) map.flyTo([city.lat, city.lng], Math.max(m.zoom+1, 7), {duration: 1.2});
+  });
+
+  // Forzar redraw por si el mapa estaba oculto
+  setTimeout(() => map.invalidateSize(), 100);
+}
+
+/* Devuelve color CSS según escala de calor 0-100 */
+function heatmapColorForValue(v){
+  if(v >= 80) return '#9B2D3F';       // rojo sangría (fire)
+  if(v >= 65) return '#C75B3C';       // terracota (hot)
+  if(v >= 50) return '#E07B5C';       // coral (warm-hot)
+  if(v >= 35) return '#E8C97A';       // oro (warm)
+  if(v >= 20) return '#5A8FA6';       // azul templado (cool)
+  return '#8898A8';                    // gris frío (cold)
+}
+
+/* Clase CSS heatmap para barra de interés en tabla */
+function heatmapClass(v){
+  if(v >= 80) return 'hm-fire';
+  if(v >= 65) return 'hm-hot';
+  if(v >= 45) return 'hm-warm';
+  if(v >= 25) return 'hm-cool';
+  return 'hm-cold';
+}
+
+/* Emoji+texto de estado según valor 0-100 */
+function trendVerdict(v){
+  if(v >= 80) return '🔥 Consolidada · máxima demanda';
+  if(v >= 65) return '↑ En crecimiento';
+  if(v >= 45) return '→ Estable';
+  if(v >= 25) return '↓ Bajando · atención';
+  return '↓↓ Declive · demanda muy baja';
+}
+
+function trendLabel(v){
+  if(v > 85) return 'Consolidada';
+  if(v > 65) return 'En crecimiento';
+  if(v > 45) return 'Estable';
+  if(v > 25) return 'Bajando';
+  return 'Declive';
+}
+
+function currentWeekLabel(){
+  const d = new Date();
+  const start = new Date(d.getFullYear(),0,1);
+  const week = Math.ceil((((d - start) / 86400000) + start.getDay()+1) / 7);
+  return `SEM ${String(week).padStart(2,'0')} · ${d.getFullYear()}`;
+}
+
+/* ════════════════════════════════════════════════════════
+   SECCIÓN 2 — MODELO AI
+   ════════════════════════════════════════════════════════ */
+
+async function checkServer(){
+  const dot = document.getElementById('srvDot');
+  const txt = document.getElementById('srvTxt');
+  const modelName = document.getElementById('aiModelName');
+  const modelClasses = document.getElementById('aiModelClasses');
+  try{
+    const r = await fetch(SERVER + '/api/health', {signal: AbortSignal.timeout(2000)});
+    const d = await r.json();
+    if(d.model_ok){
+      dot.className = 'srv-dot on';
+      txt.textContent = `LOVSUN ResNet18 · ${d.classes} clases`;
+      if(modelName && d.model){
+        modelName.textContent = d.model.split(/[\\/]/).pop();
+      }
+      if(modelClasses) modelClasses.textContent = `${d.classes} (definidas en lovsun_classes.py)`;
+      state.modelDiagnosis = null;
+    } else {
+      dot.className = 'srv-dot off';
+      txt.textContent = 'Modelo no cargado';
+      if(modelName) modelName.innerHTML = '<span style="color:var(--rojo-sangria)">⚠ no cargado</span>';
+      if(modelClasses) modelClasses.textContent = '—';
+      // Guarda diagnóstico — al pulsar "Analizar imagen" se mostrará completo
+      state.modelDiagnosis = {
+        searched: d.searched_paths || [],
+        expected: d.expected_filename,
+        hint:     d.hint,
+        cwd:      d.cwd
+      };
+    }
+  } catch {
+    dot.className = 'srv-dot off';
+    txt.textContent = 'Servidor offline';
+    if(modelName) modelName.innerHTML = '<span style="color:var(--rojo-sangria)">⚠ servidor offline</span>';
+    if(modelClasses) modelClasses.textContent = '—';
+    state.modelDiagnosis = {server_off: true};
+  }
+}
+
+const fileIn = document.getElementById('fileIn');
+const dropZone = document.getElementById('dropZone');
+const preview = document.getElementById('preview');
+const btnAnalyze = document.getElementById('btnAnalyze');
+let currentB64 = null;
+
+fileIn.addEventListener('change', e => {
+  const f = e.target.files[0];
+  if(!f) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const dataUrl = ev.target.result;
+    currentB64 = dataUrl.split(',')[1];
+    preview.src = dataUrl;
+    preview.style.display = 'block';
+    dropZone.classList.add('has');
+    dropZone.querySelector('.drop-icon').style.display = 'none';
+    dropZone.querySelector('.drop-txt').style.display = 'none';
+    dropZone.querySelector('.drop-hint').style.display = 'none';
+    btnAnalyze.disabled = false;
+  };
+  reader.readAsDataURL(f);
+});
+
+['dragover','dragenter'].forEach(ev =>
+  dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.style.borderColor = 'var(--terracotta)'; })
+);
+['dragleave','drop'].forEach(ev =>
+  dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.style.borderColor = ''; })
+);
+dropZone.addEventListener('drop', e => {
+  if(e.dataTransfer.files.length){
+    fileIn.files = e.dataTransfer.files;
+    fileIn.dispatchEvent(new Event('change'));
+  }
+});
+
+btnAnalyze.addEventListener('click', async () => {
+  if(!currentB64) return;
+  document.getElementById('aiLoad').style.display = 'block';
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('verdict').style.display = 'none';
+  document.getElementById('aiError').style.display = 'none';
+
+  try {
+    const r = await fetch(SERVER + '/api/analyze', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({image: currentB64}),
+      signal: AbortSignal.timeout(15000)
+    });
+
+    if(!r.ok){
+      const err = await r.json().catch(()=>({error: r.statusText}));
+      throw new Error(`HTTP ${r.status} · ${err.error || err.mensaje || r.statusText}`);
+    }
+
+    const d = await r.json();
+    if(d.error){
+      throw new Error(d.error + (d.mensaje ? ' · ' + d.mensaje : ''));
+    }
+    showVerdict(d);
+
+  } catch (err) {
+    // NO inventamos datos: error explícito al usuario
+    let msg = err.message || String(err);
+    let hint = '';
+    if(err.name === 'AbortError' || err.name === 'TimeoutError'){
+      hint = 'El modelo tardó más de 15s en responder. ¿Está corriendo "python lovsun_server.py"?';
+    } else if(msg.includes('Failed to fetch') || msg.includes('NetworkError')){
+      hint = 'No se puede conectar al servidor. Asegúrate de que "python lovsun_server.py" está corriendo en localhost:5055.';
+    } else if(msg.includes('Modelo no')){
+      // Diagnóstico detallado: muestra exactamente qué rutas probó el server
+      const diag = state.modelDiagnosis;
+      if(diag && diag.searched){
+        hint = `<strong>El servidor está corriendo en:</strong> <code>${diag.cwd||'—'}</code><br>` +
+               `<strong>Buscó el modelo en (en este orden):</strong><br>` +
+               '<ol style="margin:6px 0 6px 18px;padding:0;font-family:var(--mono);font-size:11px;line-height:1.7">' +
+                 diag.searched.map(p => `<li>${p}</li>`).join('') +
+               '</ol>' +
+               `<strong style="color:var(--terracotta)">Solución:</strong> ` +
+               `mueve o copia tu archivo .pth a <code>${diag.cwd}/lovsun_model.pth</code> y reinicia el servidor.`;
+      } else {
+        hint = 'El servidor está activo pero no encontró lovsun_model.pth. Comprueba la ruta del archivo.';
+      }
+    }
+    document.getElementById('aiErrorMsg').textContent = msg;
+    document.getElementById('aiErrorHint').innerHTML = hint;
+    document.getElementById('aiError').style.display = 'block';
+  }
+  document.getElementById('aiLoad').style.display = 'none';
+});
+
+function showVerdict(d){
+  const v = document.getElementById('verdict');
+  v.style.display = 'block';
+  // Oculta el bloque de error previo (si lo hay) y la pista superior
+  document.getElementById('aiError').style.display = 'none';
+  document.getElementById('emptyState').style.display = 'none';
+
+  // Etiqueta amigable: si el server devuelve `label` (estilo macro), úsalo;
+  // si no, usa `clase` (nombre crudo de la 14ª categoría); si no, fallback.
+  const displayName = d.label || d.clase || '—';
+  document.getElementById('vClass').textContent = displayName;
+
+  const confStr = d.confianza || '—';
+  document.getElementById('vConf').textContent = `${confStr} de confianza`;
+  const conf = parseFloat((confStr+'').replace('%','')) || 0;
+  setTimeout(() => { document.getElementById('vBar').style.width = conf + '%'; }, 50);
+
+  // Top3 — defensivo (si no viene, lo dejamos vacío con mensaje claro)
+  const top3 = Array.isArray(d.top3) ? d.top3 : [];
+  document.getElementById('top3').innerHTML = top3.length
+    ? top3.map(t => {
+        const name = t.label || t.clase || '?';
+        const prob = typeof t.prob === 'number' ? t.prob : parseFloat(t.prob) || 0;
+        return `<div class="t3r">
+          <div class="t3n">${name}</div>
+          <div class="t3b"><div class="t3f" style="width:${prob}%"></div></div>
+          <div class="t3v">${prob.toFixed(1)}%</div>
+        </div>`;
+      }).join('')
+    : '<div class="t3r" style="color:var(--ink-30)">— el servidor no devolvió top-3 —</div>';
+
+  // Paleta dominante — defensivo
+  const colors = Array.isArray(d.color_pred) ? d.color_pred : [];
+  document.getElementById('colors').innerHTML = colors.length
+    ? colors.map(c => `<div class="cdot" style="background:${c}" title="${c}"></div>`).join('')
+    : '<span style="color:var(--ink-30);font-size:12px">— sin paleta —</span>';
+
+  // Acción — cruzar clase detectada con datos reales del snapshot
+  let action = d.accion_lovsun || d.action || '';
+
+  // Buscar el style key que corresponde a la clase detectada
+  const styleKey = d.style_key || Object.keys(STYLES).find(k =>
+    (STYLES[k].name||'').toLowerCase() === displayName.toLowerCase()
+  );
+
+  // Enriquecer con datos reales del pipeline si existen
+  const snap = state.snapshot;
+  if(snap && styleKey){
+    const esData = snap.by_geo?.ES?.styles?.[styleKey];
+    const brData = snap.by_geo?.BR?.styles?.[styleKey];
+    const esDelta = esData?.delta_pct_weeks;
+    const brDelta = brData?.delta_pct_weeks;
+    const esCur   = esData?.current_value || 0;
+
+    if(typeof esDelta === 'number'){
+      const trend = esDelta >= 15 ? 'tendencia consolidada' : esDelta >= 3 ? 'en crecimiento' : esDelta <= -15 ? 'en declive fuerte' : esDelta <= -3 ? 'bajando' : 'estable';
+      const urgency = esDelta >= 15 ? '⬆ PRIORIDAD ALTA' : esDelta >= 3 ? '↗ En crecimiento' : esDelta <= -5 ? '↘ Reducir exposición' : '→ Mantener';
+      const brNote = (typeof brDelta === 'number') ? ` Brasil: ${brDelta>=0?'+':''}${brDelta.toFixed(1)}%.` : '';
+      action = urgency + ' · ' + displayName + ' ' + trend + ' en España (' + (esDelta>=0?'+':'') + esDelta.toFixed(1) + '% próx. 12 sem).' + brNote
+        + (esData?.action ? ' ' + esData.action : '');
+    } else if(!action){
+      action = 'Clase detectada: ' + displayName + '. Ejecuta el pipeline para obtener datos de tendencia en tiempo real.';
+    }
+  } else if(!action){
+    // Fallback desde STYLES hardcoded
+    const sData = styleKey ? STYLES[styleKey] : null;
+    action = sData
+      ? displayName + ' · score de referencia ' + sData.score + '/100 · ' + (sData.action || sData.trend || '')
+      : 'Clase detectada: ' + displayName + '. Ejecuta el pipeline para datos en tiempo real.';
+  }
+
+  document.getElementById('vAction').innerHTML = formatAction(action);
+}
+
+function formatAction(txt){
+  // Resalta primer verbo en terracota
+  return txt.replace(/^([A-ZÁÉÍÓÚ][a-záéíóúñ]+(?:\s+[a-záéíóúñ]+)?)/,'<strong>$1</strong>');
+}
+
+/* ════════════════════════════════════════════════════════
+   SECCIÓN 3 — WEBSCRAPING + FORECASTING
+   ════════════════════════════════════════════════════════ */
+
+function renderSources(){
+  const geoForDisplay = (state.marketFilter === 'BR') ? 'BR'
+                      : (state.marketFilter === 'ES') ? 'ES'
+                      : 'ES'; // default to ES for ALL / COMPARE
+  const html = KEYWORD_GROUPS.map(g => {
+    const kws = getKeywordsForGeo(g, geoForDisplay);
+    const note = (g.synonymNote && g.synonymNote[geoForDisplay])
+      ? `<div class="br-note" style="margin-top:3px;padding:2px 5px;">${g.synonymNote[geoForDisplay]}</div>` : '';
+    return `
+    <div class="source-card ${g.on?'on':''}" data-id="${g.id}">
+      <div class="src-check"></div>
+      <div class="src-name">
+        <div class="src-n">${g.label}</div>
+        <div class="src-meta">${kws.join(' · ')}</div>
+        ${note}
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('sourceList').innerHTML = html;
+  document.querySelectorAll('.source-card').forEach(c => c.onclick = () => {
+    const g = KEYWORD_GROUPS.find(x => x.id === c.dataset.id);
+    g.on = !g.on;
+    renderSources();
+  });
+}
+
+function renderGeoSelector(){
+  const sel = document.getElementById('geoInput');
+  sel.innerHTML = GEOS.map(g => `<option value="${g.code}" ${g.code==='ES'?'selected':''}>${g.name} (${g.code})</option>`).join('');
+}
+
+async function refreshSavedCsvs(){
+  try{
+    const r = await fetch(SERVER + '/api/csvs', {signal: AbortSignal.timeout(2000)});
+    if(!r.ok) throw 0;
+    const d = await r.json();
+    const div = document.getElementById('savedCsvs');
+    if(!d.csvs || !d.csvs.length){
+      div.innerHTML = '<span style="color:var(--ink-30)">— ningún CSV todavía</span>';
+      return;
+    }
+    div.innerHTML = d.csvs.slice(0,6).map(c =>
+      `<div style="padding:5px 0;border-bottom:1px solid var(--sand-10);display:flex;justify-content:space-between;gap:8px">
+         <a href="${SERVER}/api/csv/${c.filename}" target="_blank" style="font-family:var(--mono);font-size:10px;color:var(--terracotta);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px" title="${c.filename}">${c.filename}</a>
+         <span class="mono" style="font-size:10px;color:var(--ink-30);flex-shrink:0">${c.size_kb}KB</span>
+       </div>`
+    ).join('');
+  } catch {
+    document.getElementById('savedCsvs').innerHTML = '<span style="color:var(--ink-30)">— servidor offline</span>';
+  }
+}
+
+const btnScrape = document.getElementById('btnScrape');
+btnScrape.addEventListener('click', async () => {
+  // Determinar keywords
+  const customKw = document.getElementById('kwInput').value.trim();
+  let keywords = [];
+  if(customKw){
+    keywords = customKw.split(',').map(k => k.trim()).filter(Boolean);
+  } else {
+    const active = KEYWORD_GROUPS.filter(g => g.on);
+    if(!active.length){
+      alert('Selecciona al menos una categoría o escribe keywords personalizadas');
+      return;
+    }
+    keywords = active.flatMap(g => g.kws);
+  }
+  if(keywords.length > 5){
+    keywords = keywords.slice(0,5);
+    log_progress(`⚠ Limitando a 5 keywords (máximo de Google Trends): ${keywords.join(', ')}`);
+  }
+
+  const geo = document.getElementById('geoInput').value;
+  const timeframe = document.getElementById('rangeInput').value;
+
+  // UI
+  btnScrape.disabled = true;
+  document.getElementById('progShell').style.display = 'block';
+  document.getElementById('progLog').innerHTML = '';
+  document.getElementById('csvShell').style.display = 'none';
+  document.getElementById('fcShell').style.display = 'none';
+  document.getElementById('csvEmpty').style.display = 'none';
+
+  log_progress(`▸ Iniciando scraping Google Trends`);
+  log_progress(`<span class="url">keywords: ${keywords.join(', ')}</span>`);
+  log_progress(`<span class="url">geo: ${geo} · timeframe: ${timeframe}</span>`);
+  setProgress(15, 'Conectando a Google Trends…');
+
+  try {
+    setProgress(35, 'Solicitando datos…');
+    const r = await fetch(SERVER + '/api/scrape', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({keywords, geo, timeframe}),
+      signal: AbortSignal.timeout(180000)  // pytrends con retries puede tardar hasta 3 min
+    });
+
+    if(!r.ok){
+      const err = await r.json().catch(()=>({error: r.statusText}));
+      log_progress(`<span class="err">✗ Error ${r.status}: ${err.error || 'desconocido'}</span>`);
+      if(r.status === 503){
+        log_progress(`<span class="err">⚠ Backend sin pytrends. Ejecuta: pip install pytrends pandas statsmodels</span>`);
+      }
+      setProgress(100, 'Error');
+      btnScrape.disabled = false;
+      return;
+    }
+
+    setProgress(75, 'Procesando respuesta…');
+    const csv = await r.json();
+    log_progress(`<span class="ok">✓ ${csv.rows.length} filas obtenidas · ${csv.keywords.length} keywords</span>`);
+    log_progress(`<span class="ok">✓ CSV guardado: ${csv.csv_filename}</span>`);
+    setProgress(100, 'Completado');
+
+    state.csv = csv;
+    renderCsv(csv);
+    refreshSavedCsvs();
+
+  } catch (err) {
+    if(err.name === 'AbortError' || err.name === 'TimeoutError'){
+      log_progress(`<span class="err">✗ Timeout. Google Trends puede estar lento. Reintenta en 30s.</span>`);
+    } else {
+      log_progress(`<span class="err">✗ Servidor offline o sin conexión a Google Trends</span>`);
+      log_progress(`<span class="err">  ${err.message}</span>`);
+      log_progress(`<span class="err">  Asegúrate de ejecutar: python lovsun_server.py</span>`);
+    }
+    setProgress(100, 'Error');
+  }
+  btnScrape.disabled = false;
+});
+
+function log_progress(html){
+  const log = document.getElementById('progLog');
+  log.innerHTML += html + '<br>';
+  log.scrollTop = log.scrollHeight;
+}
+function setProgress(pct, label){
+  document.getElementById('progFil').style.width = pct + '%';
+  document.getElementById('progPct').textContent = pct + '%';
+  document.getElementById('progLabel').textContent = label;
+}
+
+function renderCsv(csv){
+  document.getElementById('csvShell').style.display = 'block';
+  document.getElementById('csvName').textContent = csv.csv_filename || `lovsun_${csv.keyword.replace(/\s+/g,'_')}.csv`;
+  document.getElementById('csvInfo').textContent = `· ${csv.rows.length} filas · ${(csv.keywords||[csv.keyword]).length} keywords · ${csv.geo}`;
+
+  const cols = Object.keys(csv.rows[0]);
+  const table = document.getElementById('csvTable');
+  table.innerHTML = `
+    <thead><tr>${cols.map(c => `<th>${c}</th>`).join('')}</tr></thead>
+    <tbody>${csv.rows.slice(-15).map(r =>
+      `<tr>${cols.map(c => `<td>${r[c]}</td>`).join('')}</tr>`
+    ).join('')}</tbody>
+  `;
+  // Mostrar selector de categoría para forecast y hint estacional
+  if(typeof showFcCatSelector === 'function') showFcCatSelector(csv);
+}
+
+document.getElementById('btnDownload').addEventListener('click', () => {
+  if(!state.csv) return;
+  // Si tenemos ruta del backend, descargamos desde ahí
+  if(state.csv.csv_filename){
+    window.open(SERVER + '/api/csv/' + state.csv.csv_filename, '_blank');
+    return;
+  }
+  // Fallback: generar CSV en cliente
+  const cols = Object.keys(state.csv.rows[0]);
+  const lines = [cols.join(',')];
+  state.csv.rows.forEach(r => lines.push(cols.map(c => r[c]).join(',')));
+  const blob = new Blob([lines.join('\n')], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `lovsun_${(state.csv.keyword||'data').replace(/\s+/g,'_')}.csv`;
+  a.click();
+});
+
+/* ── Forecast button: se gestiona en el handler mejorado de abajo ── */
+
+function drawForecastChartReal(result){
+  const ctx = document.getElementById('forecastChart').getContext('2d');
+  if(state.fcChart) state.fcChart.destroy();
+  const allLabels = [...result.dates_hist, ...result.dates_forecast];
+  const histPad = [...result.historic, ...Array(result.forecast.length).fill(null)];
+  const lastIdx = result.historic.length - 1;
+  const fcPad   = [...Array(lastIdx).fill(null), result.historic[lastIdx], ...result.forecast];
+  const upperPad= [...Array(lastIdx).fill(null), result.historic[lastIdx], ...result.upper];
+  const lowerPad= [...Array(lastIdx).fill(null), result.historic[lastIdx], ...result.lower];
+  state.fcChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: allLabels,
+      datasets: [
+        {label:'Banda sup (95%)',  data:upperPad, borderColor:'rgba(199,91,60,0)', backgroundColor:'rgba(199,91,60,0.08)', borderWidth:0, pointRadius:0, fill:'+1', tension:0.3},
+        {label:'Banda inf (95%)',  data:lowerPad, borderColor:'rgba(199,91,60,0)', backgroundColor:'rgba(199,91,60,0.08)', borderWidth:0, pointRadius:0, fill:false, tension:0.3},
+        {label:'Historico (GT)',   data:histPad,  borderColor:'#1F4E6B', backgroundColor:'rgba(31,78,107,0.08)', borderWidth:2, tension:0.3, pointRadius:0, pointHoverRadius:5, fill:false},
+        {label:'Forecast HW',      data:fcPad,   borderColor:'#C75B3C', backgroundColor:'rgba(199,91,60,0.10)', borderWidth:2.5, borderDash:[6,4], tension:0.3, pointRadius:0, pointHoverRadius:5, fill:false}
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{labels:{color:'#5C5247',font:{family:'Inter',size:11},usePointStyle:true,pointStyle:'circle',filter:(it)=>!it.text.startsWith('Banda')}},
+        tooltip:{backgroundColor:'#1A1410',titleFont:{family:'Inter',size:12,weight:'500'},bodyFont:{family:'JetBrains Mono',size:11},padding:12,borderColor:'#C75B3C',borderWidth:1}
+      },
+      scales:{
+        x:{grid:{color:'rgba(168,153,127,0.12)'},ticks:{color:'#A8997F',font:{family:'JetBrains Mono',size:10},maxRotation:0,autoSkip:true,maxTicksLimit:8}},
+        y:{beginAtZero:false,grid:{color:'rgba(168,153,127,0.12)'},ticks:{color:'#A8997F',font:{family:'JetBrains Mono',size:10}}}
+      }
+    }
+  });
+}
+
+/* Insight basico (fallback) */
+function generateForecastInsight(ins, kw, horizonMonths){
+  const geo = document.getElementById('geoInput')?.value || 'ES';
+  return generateForecastInsightEnhanced(ins, kw, horizonMonths, geo);
+}
+
+/* Tabs */
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('on'));
+    t.classList.add('on');
+    const tab = t.dataset.tab;
+    document.getElementById('csvShell').style.display  = (tab==='csv' && state.csv)     ? 'block' : 'none';
+    document.getElementById('fcShell').style.display   = (tab==='fc'  && state.fcChart) ? 'block' : 'none';
+    if(tab==='csv' && !state.csv) document.getElementById('csvEmpty').style.display = 'block';
+    else document.getElementById('csvEmpty').style.display = 'none';
+  });
+});
+
+const FLAG_MAP   = {ES:'🇪🇸', BR:'🇧🇷', FR:'🇫🇷', IT:'🇮🇹', PT:'🇵🇹', GB:'🇬🇧', US:'🇺🇸', DE:'🇩🇪'};
+const GEO_LABELS = {ES:'España', BR:'Brasil', FR:'Francia', IT:'Italia', PT:'Portugal', GB:'Reino Unido', US:'Estados Unidos', DE:'Alemania'};
+
+async function loadWinner(){
+  try {
+    const r = await fetch(SERVER + '/api/winner', {signal: AbortSignal.timeout(3000)});
+    if(r.status === 404){ state.snapshot=null; renderNoWinner('no_snapshot'); renderMap(); return; }
+    if(!r.ok) throw new Error(r.statusText);
+    const data = await r.json();
+    state.snapshot = data;
+    state.snapshotAge = (new Date() - new Date(data.started_at)) / 36e5;
+    renderWinner(data);
+    renderMap();
+  } catch(err){ state.snapshot=null; renderNoWinner('server_offline'); renderMap(); }
+}
+
+function renderNoWinner(reason){
+  document.getElementById('dailyDot').className = 'dot ' + (reason==='server_offline' ? 'empty' : 'stale');
+  document.getElementById('dailyState').textContent = reason==='server_offline' ? 'servidor offline' : 'sin ejecutar';
+  document.getElementById('dailyTime').textContent = '— sin datos —';
+  document.getElementById('dailyDuration').textContent = '—';
+  document.getElementById('dailyGeos').textContent = '—';
+  const cmd = reason==='server_offline' ? 'python lovsun_server.py' : 'python lovsun_daily.py --once';
+  const msg = reason==='server_offline' ? 'No se puede conectar con el servidor.' : 'Aun no hay snapshot diario.';
+  document.getElementById('winnersGrid').innerHTML = `
+    <div class="winners-empty">
+      <div class="icon">·</div>
+      <p>${msg}</p>
+      <p style="font-size:12px;margin-top:8px">Para ejecutar el pipeline:</p>
+      <div class="cmd">${cmd}</div>
+      <p style="font-size:11px;margin-top:14px;color:var(--ink-30)">O pulsa <strong style="color:var(--terracotta)">&ldquo;Ejecutar pipeline ahora&rdquo;</strong> si el servidor esta corriendo.</p>
+    </div>`;
+  // Rellenar KPI bar con datos de referencia aunque no haya snapshot
+  const sorted = Object.entries(STYLES).sort((a,b) => parseFloat(b[1].trend||0) - parseFloat(a[1].trend||0));
+  const top   = sorted[0];
+  const emerg = sorted[1];
+  if(top){
+    document.getElementById('kbGrowth').innerHTML     = '<em>' + top[1].name + '</em> ' + top[1].trend;
+    document.getElementById('kpiGrowthNum').innerHTML = top[1].trend.replace('%','<em>%</em>');
+    document.getElementById('kpiGrowthLbl').textContent = top[1].name + ' · referencia · España';
+  }
+  if(emerg){
+    document.getElementById('kbEmergent').innerHTML   = '<em>' + emerg[1].name + '</em> ' + emerg[1].trend + ' ref.';
+  }
+  document.getElementById('kbGrowthBR').innerHTML    = '<em>— ejecuta pipeline —</em>';
+  document.getElementById('kbLastRun').innerHTML     = '<em>nunca</em>';
+  document.getElementById('kbMarkets2').innerHTML    = '<em>🇪🇸 🇧🇷</em>';
+  document.getElementById('kpiMarkets').textContent  = 2;
+  document.getElementById('kpiStyles').textContent   = Object.keys(STYLES).length;
+}
+
+function renderWinner(data){
+  const lastRun = new Date(data.started_at);
+  const now = new Date();
+  const ageHours = (now - lastRun) / 36e5;
+  const isFresh = ageHours < 30;
+  document.getElementById('dailyDot').className = 'dot ' + (isFresh ? 'live' : 'stale');
+  document.getElementById('dailyState').textContent = isFresh ? 'sincronizado' : 'datos antiguos';
+  document.getElementById('dailyTime').textContent =
+    lastRun.toLocaleString('es-ES', {dateStyle:'medium', timeStyle:'short'}) +
+    ' (hace ' + formatAge(ageHours) + ')';
+  document.getElementById('dailyDuration').textContent = (data.duration_sec||0).toFixed(0) + 's';
+  document.getElementById('dailyGeos').textContent = (data.geos || []).join(' · ');
+  updateKpiBar(data);
+  const byGeo   = data.by_geo  || {};
+  const winners = data.winners || {};
+  const allGeos = Object.keys(byGeo);
+  if(!allGeos.length){
+    document.getElementById('winnersGrid').innerHTML =
+      '<div class="winners-empty"><div class="icon">·</div><p>El pipeline corrio pero no obtuvo datos.</p></div>';
+    return;
+  }
+  renderWinnersForFilter(byGeo, winners, allGeos);
+}
+
+function renderWinnersForFilter(byGeo, winners, allGeos){
+  let geos = allGeos;
+  if(state.marketFilter === 'ES')      geos = allGeos.filter(g => g === 'ES');
+  else if(state.marketFilter === 'BR') geos = allGeos.filter(g => g === 'BR');
+  else if(state.marketFilter === 'COMPARE') geos = allGeos.filter(g => g === 'ES' || g === 'BR');
+  if(!geos.length){
+    document.getElementById('winnersGrid').innerHTML =
+      '<div class="winners-empty"><div class="icon">·</div><p>Sin datos para el mercado seleccionado.</p></div>';
+    return;
+  }
+  const blocks = geos.map(geo => {
+    const styles = byGeo[geo]?.styles || {};
+    const winner = winners[geo];
+    const rows = Object.entries(styles).filter(([k,v]) => v);
+    if(!rows.length){
+      return '<div class="trends-country"><div class="trends-country-head"><div class="geo-info">' +
+        '<span class="geo-flag">' + (FLAG_MAP[geo]||'') + '</span>' +
+        '<div><div class="geo-name">' + (GEO_LABELS[geo]||geo) + '</div>' +
+        '<div class="geo-meta">' + geo + ' · sin datos</div></div></div></div>' +
+        '<div class="trends-empty-row">Las consultas a Google Trends fallaron en este mercado.</div></div>';
+    }
+    rows.sort((a,b) => Math.abs(b[1].delta_pct_weeks||0) - Math.abs(a[1].delta_pct_weeks||0));
+    const topRows  = rows.slice(0, 3);   // top 3 por mayor variación absoluta
+    const restRows = rows.slice(3);       // el resto, colapsados
+    const maxScore = Math.max(...rows.map(r => r[1].current_value || 0), 1);
+    const topStyle = winner?.style;
+
+    const buildRow = ([style, d], i, isRest=false) => {
+      const dW = d.delta_pct_weeks || 0;
+      const dM = d.delta_pct_months || 0;
+      const cur = d.current_value || 0;
+      const cls  = dW >= 5 ? 'up' : dW <= -5 ? 'down' : 'flat';
+      const clsM = dM >= 5 ? 'up' : dM <= -5 ? 'down' : 'flat';
+      const pillCls = dW >= 15 ? 'hot' : dW >= 5 ? 'rising' : dW <= -15 ? 'declining' : dW <= -5 ? 'cool' : 'stable';
+      const pillTxt = dW >= 15 ? 'Consolidada' : dW >= 5 ? 'Subiendo' : dW <= -15 ? 'Declive' : dW <= -5 ? 'Bajando' : 'Estable';
+      const isTop = style === topStyle ? 'is-top' : '';
+      const rankCls = i < 3 ? 'gold' : '';
+      const hmClass = heatmapClass(cur);
+      const barWidth = Math.min(100, (cur / maxScore) * 100);
+      const group = KEYWORD_GROUPS.find(g => g.id === style);
+      const synNote = (group?.synonymNote?.[geo])
+        ? '<span class="br-note">' + group.synonymNote[geo] + '</span>' : '';
+      let actionTxt = formatAction(d.action || '');
+      if(cur >= 70 && dW >= 10){
+        actionTxt += ' <span class="action-real-badge">' + (dW>=0?'+':'') + dW.toFixed(0) + '% esta semana</span>';
+      }
+      return '<tr class="' + isTop + '">' +
+        '<td><div class="tr-rank ' + rankCls + '">' + String(i+1).padStart(2,'0') + '</div></td>' +
+        '<td class="tr-name"><div class="label"><em>' + (d.label||style).split(' ')[0] + '</em> ' + (d.label||style).split(' ').slice(1).join(' ') + synNote + '</div>' +
+        '<div class="kw">' + (d.keywords||[]).slice(0,3).join(' · ') + '</div></td>' +
+        '<td class="tr-score"><div class="tr-score-bar"><div class="tr-score-fill ' + hmClass + '" style="width:' + barWidth.toFixed(0) + '%"></div></div>' +
+        '<div class="tr-score-val">interes <strong style="color:' + heatmapColorForValue(cur) + '">' + cur.toFixed(0) + '</strong>/100</div></td>' +
+        '<td class="tr-delta ' + cls + '">' + (dW>=0?'+':'') + dW.toFixed(1) + '%</td>' +
+        '<td class="tr-delta ' + clsM + '">' + (dM>=0?'+':'') + dM.toFixed(1) + '%</td>' +
+        '<td class="tr-spark">' + sparkline(d.history||[], heatmapColorForValue(cur)) + '</td>' +
+        '<td class="tr-status"><span class="pill ' + pillCls + '">' + pillTxt + '</span></td>' +
+        '<td class="tr-action">' + actionTxt + '<br><span style="font-family:var(--mono);font-size:10px;color:var(--ink-30)">Pico · ' + (d.peak_date_weeks||'—') + '</span></td>' +
+        '</tr>';
+    };
+    const trBodyTop  = topRows.map((r,i) => buildRow(r,i)).join('');
+    const trBodyRest = restRows.map((r,i) => buildRow(r,i+3,true)).join('');
+    const restToggle = restRows.length ? `
+      <tr class="rest-toggle-row" id="restToggle_${geo}" onclick="
+        var tb=document.getElementById('restBody_${geo}');
+        var btn=document.getElementById('restBtn_${geo}');
+        if(tb.style.display==='none'){tb.style.display='';btn.textContent='▲ Ocultar ${restRows.length} categorías'}
+        else{tb.style.display='none';btn.textContent='▼ Ver ${restRows.length} categorías más'}
+      ">
+        <td colspan="8" style="text-align:center;padding:10px;cursor:pointer">
+          <span id="restBtn_${geo}" style="font-family:var(--mono);font-size:11px;color:var(--ink-30);letter-spacing:0.05em">▼ Ver ${restRows.length} categorías más</span>
+        </td>
+      </tr>
+      <tbody id="restBody_${geo}" style="display:none">${trBodyRest}</tbody>` : '';
+
+    const winnerLabel = winner
+      ? '<div class="winner-tag">Ganador · <strong>' + (winner.label||winner.style) + '</strong></div>' : '';
+
+    return '<div class="trends-country"><div class="trends-country-head"><div class="geo-info">' +
+      '<span class="geo-flag">' + (FLAG_MAP[geo]||'') + '</span>' +
+      '<div><div class="geo-name">' + (GEO_LABELS[geo]||geo) + '</div>' +
+      '<div class="geo-meta">' + geo + ' · ' + rows.length + ' categorias · Google Trends</div></div></div>' +
+      winnerLabel + '</div>' +
+      '<table class="trends-table"><thead><tr>' +
+      '<th>#</th><th>Categoria</th><th>Interes actual</th>' +
+      '<th class="num">&#916; 12 sem</th><th class="num">&#916; 6 meses</th>' +
+      '<th>Tendencia 6m</th><th>Estado</th><th>Accion recomendada</th>' +
+      '</tr></thead><tbody>' + trBodyTop + '</tbody>' + restToggle + '</table></div>';
+  }).join('');
+
+  document.getElementById('winnersGrid').innerHTML = blocks;
+}
+
+function updateKpiBar(data){
+  const byGeo = data.by_geo || {};
+  const esStyles = byGeo.ES?.styles || {};
+  const brStyles = byGeo.BR?.styles || {};
+  const esRows = Object.entries(esStyles).filter(([,v])=>v&&(v.current_value||0)>0).sort((a,b)=>(b[1].delta_pct_weeks||0)-(a[1].delta_pct_weeks||0));
+
+  if(esRows.length){
+    const [topId,topD] = esRows[0];
+    const dW = topD.delta_pct_weeks || 0;
+    document.getElementById('kbGrowth').innerHTML = '<em>' + (topD.label||topId) + '</em> ' + (dW>=0?'+':'') + dW.toFixed(1) + '%';
+    document.getElementById('kpiGrowthNum').innerHTML = (dW>=0?'+':'') + Math.round(dW) + '<em>%</em>';
+    document.getElementById('kpiGrowthLbl').textContent = (topD.label||topId) + ' · próximas 12 sem · España';
+  } else {
+    // Fallback a datos del objeto STYLES hardcoded
+    const fallbackStyle = Object.entries(STYLES).sort((a,b) => (b[1].score||0)-(a[1].score||0))[0];
+    if(fallbackStyle){
+      document.getElementById('kbGrowth').innerHTML = '<em>' + fallbackStyle[1].name + '</em> ' + fallbackStyle[1].trend;
+      const num = parseInt(fallbackStyle[1].trend) || 0;
+      document.getElementById('kpiGrowthNum').innerHTML = fallbackStyle[1].trend.replace('%','<em>%</em>');
+      document.getElementById('kpiGrowthLbl').textContent = fallbackStyle[1].name + ' · datos de referencia · España';
+    }
+  }
+
+  // Tendencia emergente: current_value >= 30 (bajé el umbral de 40) con mayor crecimiento mensual
+  const emerging = Object.entries(esStyles).filter(([,v])=>v&&(v.current_value||0)>=30).sort((a,b)=>(b[1].delta_pct_months||0)-(a[1].delta_pct_months||0));
+  if(emerging.length){
+    const [emId,emD] = emerging[0];
+    const dM = emD.delta_pct_months||0;
+    document.getElementById('kbEmergent').innerHTML = '<em>' + (emD.label||emId) + '</em> ' + (dM>=0?'+':'') + dM.toFixed(1) + '% 6m';
+  } else {
+    // Fallback: mayor crecimiento en STYLES
+    const fbEm = Object.entries(STYLES).sort((a,b)=>parseFloat(b[1].trend||0)-parseFloat(a[1].trend||0))[0];
+    if(fbEm) document.getElementById('kbEmergent').innerHTML = '<em>' + fbEm[1].name + '</em> ' + fbEm[1].trend + ' ref.';
+  }
+
+  const brRows = Object.entries(brStyles).filter(([,v])=>v&&(v.current_value||0)>0).sort((a,b)=>(b[1].delta_pct_weeks||0)-(a[1].delta_pct_weeks||0));
+  if(brRows.length){
+    const [,brD] = brRows[0];
+    document.getElementById('kbGrowthBR').innerHTML = '<em>' + (brD.label||brRows[0][0]) + '</em> ' + ((brD.delta_pct_weeks||0)>=0?'+':'') + (brD.delta_pct_weeks||0).toFixed(1) + '%';
+  } else {
+    document.getElementById('kbGrowthBR').innerHTML = '<em>— sin datos BR —</em>';
+  }
+
+  const ageH = (new Date() - new Date(data.started_at)) / 36e5;
+  document.getElementById('kbLastRun').innerHTML = '<em>' + formatAge(ageH) + ' atrás</em>';
+  if(document.getElementById('footLastRun')) document.getElementById('footLastRun').textContent = 'Último scraping: hace ' + formatAge(ageH);
+  const geos = Object.keys(byGeo);
+  document.getElementById('kbMarkets2').innerHTML = '<em>' + geos.map(g=>FLAG_MAP[g]||g).join(' ') + '</em>';
+  document.getElementById('kpiMarkets').textContent = geos.length;
+  document.getElementById('kpiStyles').textContent = Object.keys(STYLES).length;
+}
+
+function formatAge(hours){
+  if(hours < 1) return Math.round(hours*60) + ' min';
+  if(hours < 48) return Math.round(hours) + ' h';
+  return Math.round(hours/24) + ' dias';
+}
+
+function getSeasonalNote(geo, kw, horizonMonths){
+  const kwL = (kw || '').toLowerCase();
+  const isSH  = ['BR','PT','ZA','AR','UY'].includes(geo);
+  const isSwim = kwL.includes('banador')||kwL.includes('maio')||kwL.includes('swimsuit')||kwL.includes('costume')||kwL.includes('maillot');
+  const isHP   = kwL.includes('hot pants')||kwL.includes('cintura alta')||kwL.includes('talle alto');
+  const isAsim = kwL.includes('asim')||kwL.includes('assim')||kwL.includes('asyme');
+  if(isSH){
+    if(isHP)   return 'Hemisferio Sur: pico dic-ene. Modelo aplica verano austral.';
+    if(isSwim) return 'Brasil/Sur: temporada alta nov-feb. Estacionalidad ajustada al verano austral.';
+    if(isAsim) return 'Brasil: maxima demanda dic-feb. Modelo alineado con hemisferio sur.';
+    return 'Hemisferio Sur: estacionalidad ajustada al verano austral (dic-feb).';
+  }
+  if(isHP)   return 'Iberia/Europa: pico jul-ago. Modelo aplica verano boreal.';
+  if(isSwim) return 'Hemisferio Norte: temporada alta jun-ago. Estacionalidad ajustada.';
+  if(isAsim) return 'Iberia: maxima demanda jul-ago (SS26). Modelo alineado con verano boreal.';
+  return 'Hemisferio Norte: picos de demanda en verano (jun-ago).';
+}
+
+function generateForecastInsightEnhanced(ins, kw, horizonMonths, geo){
+  const map = {
+    tendencia_consolidada: ['Tendencia consolidada.', 'anticipar produccion y reforzar inventario'],
+    crecimiento_moderado:  ['Crecimiento moderado.',  'testear con campanas focalizadas antes de escalar'],
+    estabilidad:           ['Estabilidad.',           'mantener produccion base, no invertir en crecimiento'],
+    declive_moderado:      ['Declive moderado.',      'reducir produccion y reasignar presupuesto'],
+    declive_fuerte:        ['Declive fuerte.',        'pausar linea y rotar hacia categorias emergentes']
+  };
+  const [titulo, accion] = map[ins?.verdict] || ['Sin veredicto', 'analizar manualmente'];
+  const d = typeof ins?.delta_pct === 'number' ? ins.delta_pct : 0;
+  const sign = d >= 0 ? '+' : '';
+  const peak = ins?.peak_date || '—';
+  const seasonNote = getSeasonalNote(geo || 'ES', kw, horizonMonths);
+  return '<strong>' + titulo + '</strong> El modelo proyecta <strong>' + sign + d.toFixed(1) + '%</strong> en <em>"' + kw + '"</em> en los proximos <strong>' + (horizonMonths||'?') + ' meses</strong>, pico en <strong>' + peak + '</strong>. Recomendacion: ' + accion + '.<br><span style="font-size:11px;color:var(--mar-profundo);margin-top:6px;display:block">' + seasonNote + '</span>';
+}
+
+function showFcCatSelector(csv){
+  const sel  = document.getElementById('fcCatSelector');
+  const btns = document.getElementById('fcCatBtns');
+  if(!csv || !csv.rows || !csv.rows.length){ sel.style.display='none'; return; }
+  const cols = Object.keys(csv.rows[0]).filter(c => c !== 'fecha' && c !== 'date');
+  if(!cols.length){ sel.style.display='none'; return; }
+  if(!state.fcSelectedCol || !cols.includes(state.fcSelectedCol)) state.fcSelectedCol = cols[0];
+  btns.innerHTML = cols.map(c =>
+    '<button class="fc-cat-btn ' + (c===state.fcSelectedCol?'on':'') + '" data-col="' + c + '">' + c + '</button>'
+  ).join('');
+  btns.querySelectorAll('.fc-cat-btn').forEach(b => b.onclick = () => {
+    state.fcSelectedCol = b.dataset.col;
+    btns.querySelectorAll('.fc-cat-btn').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    showSeasonalHint(document.getElementById('geoInput').value, b.dataset.col);
+  });
+  sel.style.display = 'block';
+  showSeasonalHint(document.getElementById('geoInput').value, state.fcSelectedCol);
+}
+
+function showSeasonalHint(geo, kw){
+  const hint = document.getElementById('seasonalHint');
+  const note = getSeasonalNote(geo, kw || '', 6);
+  if(note){ document.getElementById('seasonalHintTxt').textContent = note; hint.style.display='block'; }
+  else hint.style.display='none';
+}
+document.getElementById('geoInput')?.addEventListener('change', () => {
+  if(state.fcSelectedCol) showSeasonalHint(document.getElementById('geoInput').value, state.fcSelectedCol);
+});
+
+/* Forecast button handler (uses fcSelectedCol + seasonal context) */
+document.getElementById('btnRunForecast').addEventListener('click', async () => {
+  if(!state.csv) return;
+  const horizonMonths = parseInt(document.getElementById('fcHorizon').value, 10) || 6;
+  const geo = document.getElementById('geoInput').value || 'ES';
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  document.querySelector('.tab[data-tab="fc"]').classList.add('on');
+  document.getElementById('csvShell').style.display = 'none';
+  document.getElementById('fcShell').style.display  = 'block';
+  const colsAll = Object.keys(state.csv.rows[0]).filter(c => c !== 'fecha' && c !== 'date');
+  const column  = (state.fcSelectedCol && colsAll.includes(state.fcSelectedCol)) ? state.fcSelectedCol : colsAll[0];
+  document.getElementById('fcTitle').textContent = 'Forecast ' + horizonMonths + 'm · ' + column;
+  document.getElementById('fcSub').textContent   = 'Calculando Holt-Winters... (' + horizonMonths + ' meses · ' + geo + ')';
+  document.getElementById('fcDelta').textContent  = '...';
+  document.getElementById('fcPeak').textContent   = '...';
+  document.getElementById('fcInsight').textContent = 'Esperando respuesta del backend...';
+  showSeasonalHint(geo, column);
+  try {
+    const r = await fetch(SERVER + '/api/forecast', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ csv:'data/'+state.csv.csv_filename, column, horizon_months:horizonMonths }),
+      signal: AbortSignal.timeout(30000)
+    });
+    if(!r.ok){ const err = await r.json().catch(()=>({error:r.statusText})); throw new Error(err.error||'forecast fallo'); }
+    const result = await r.json();
+    drawForecastChartReal(result);
+    const ins = result.insight || {};
+    const deltaVal = typeof ins.delta_pct === 'number' ? ins.delta_pct : 0;
+    const dEl = document.getElementById('fcDelta');
+    dEl.textContent = (deltaVal>=0?'+':'') + deltaVal.toFixed(1) + '%';
+    dEl.className   = 'v ' + (deltaVal>=2 ? 'up' : deltaVal<=-2 ? 'down' : '');
+    document.getElementById('fcPeak').textContent = ins.peak_date || '—';
+    const freqTxt = result.frecuencia === 'semanal' ? 'semanal (estac. 52)' : 'mensual (estac. 12)';
+    const mae = (result.metrics && typeof result.metrics.mae === 'number') ? result.metrics.mae.toFixed(1) : '—';
+    document.getElementById('fcSub').textContent = 'Holt-Winters · ' + freqTxt + ' · MAE ' + mae + ' · ' + (result.metrics?.n||0) + ' pts · ' + horizonMonths + 'm';
+    document.getElementById('fcInsight').innerHTML = generateForecastInsightEnhanced(ins, column, horizonMonths, geo);
+  } catch(err){
+    let hint = 'Verifica que el backend este corriendo con statsmodels instalado.';
+    if(err.message?.includes('JSON')) hint = 'El servidor devolvio JSON invalido. Reinicia lovsun_forecast.py.';
+    document.getElementById('fcInsight').innerHTML =
+      '<strong style="color:var(--rojo-sangria)">Error en forecast:</strong> ' + err.message +
+      '<br><span style="color:var(--ink-60);font-size:12px">' + hint + '</span>';
+  }
+});
+
+/* Pipeline diario - botón manual (modo async + polling) */
+document.getElementById('btnRunDaily').addEventListener('click', async () => {
+  const btn     = document.getElementById('btnRunDaily');
+  const ppShell = document.getElementById('ppShell');
+  const ppLog   = document.getElementById('ppLog');
+  btn.disabled  = true; btn.innerHTML = '&#9675; Ejecutando...';
+  ppShell.style.display = 'block'; ppLog.innerHTML = '';
+
+  const logLine = (txt, cls='') => {
+    ppLog.innerHTML += '<div class="'+ cls +'">'+ txt +'</div>';
+    ppLog.scrollTop = ppLog.scrollHeight;
+  };
+  const setPct = (pct, label) => {
+    document.getElementById('ppProgFil').style.width = pct + '%';
+    document.getElementById('ppLabel').textContent   = label;
+    document.getElementById('ppPct').textContent     = pct + '%';
+  };
+
+  setPct(3, 'Conectando al servidor...');
+  logLine('&#9658; Lanzando pipeline en background...');
+
+  // ── 1. LANZAR el pipeline (responde inmediatamente con job_id) ──
+  let jobId = null;
+  try {
+    const r = await fetch(SERVER + '/api/daily/run', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({geos:['ES','BR']}),
+      signal: AbortSignal.timeout(8000)   // sólo espera el handshake (8s)
+    });
+    const data = await r.json();
+    if(r.status === 409){
+      // Ya hay un job corriendo — lo seguimos con polling
+      jobId = data.job_id;
+      logLine('&#9888; Ya hay un pipeline en curso. Conectando...', 'warn');
+    } else if(!r.ok || !data.job_id){
+      logLine('&#10007; Error al iniciar: ' + (data.error||r.statusText), 'err');
+      if(r.status===503) logLine('&#9888; Ejecuta: pip install pytrends pandas statsmodels', 'err');
+      setPct(0,'Error al iniciar'); btn.disabled=false; btn.innerHTML='&#9654; Ejecutar pipeline ahora'; return;
+    } else {
+      jobId = data.job_id;
+      logLine('&#10003; Pipeline iniciado · job ' + jobId.slice(-6), 'ok');
+    }
+  } catch(err){
+    logLine('&#10007; No se pudo contactar el servidor: ' + err.message, 'err');
+    logLine('&#9888; Asegurate de que lovsun_server.py esta corriendo en el puerto 5055.', 'err');
+    setPct(0,'Sin conexion'); btn.disabled=false; btn.innerHTML='&#9654; Ejecutar pipeline ahora'; return;
+  }
+
+  // ── 2. POLLING cada 3 s hasta que el job termine ──
+  let lastLogCount = 0;
+  const poll = async () => {
+    try {
+      const r = await fetch(SERVER + '/api/daily/status?job_id=' + jobId,
+                            {signal: AbortSignal.timeout(5000)});
+      if(!r.ok){ logLine('&#9888; Error en polling ' + r.status, 'err'); return true; }
+      const s = await r.json();
+
+      // Actualiza barra de progreso con datos reales del servidor
+      setPct(s.progress || 0, s.label || '...');
+
+      // Añade solo las líneas nuevas del log del servidor
+      const newLines = (s.logs || []).slice(lastLogCount);
+      lastLogCount = (s.logs || []).length;
+      newLines.forEach(line => {
+        const isErr  = line.includes('✗') || line.includes('Error') || line.includes('error');
+        const isOk   = line.includes('✓') || line.includes('Ganador') || line.includes('Completado');
+        const isInfo = line.startsWith('▸') || line.startsWith('═');
+        logLine(line, isErr ? 'err' : isOk ? 'ok' : isInfo ? 'info' : '');
+      });
+
+      if(s.status === 'done'){
+        setPct(100, 'Completado &#10003;');
+        const res = s.result || {};
+        logLine('&#10003; Completado en ' + (res.duration_sec?.toFixed(0)||'?') + 's', 'ok');
+        Object.entries(res.winners||{}).forEach(([geo,w]) => {
+          if(w) logLine('&#10003; '+(FLAG_MAP[geo]||geo)+' '+(GEO_LABELS[geo]||geo)+' → '+w.label+
+                        ' ('+(w.delta_pct_weeks>=0?'+':'')+(w.delta_pct_weeks||0).toFixed(1)+'%)', 'ok');
+        });
+        if(res.errors?.length) res.errors.forEach(e => logLine('&#9888; '+e, 'err'));
+        setTimeout(loadWinner, 600);
+        return true; // detener polling
+      }
+      if(s.status === 'error'){
+        setPct(100, 'Error');
+        logLine('&#10007; ' + (s.error||'Error desconocido'), 'err');
+        return true;
+      }
+      return false; // seguir polling
+    } catch(e){
+      logLine('&#9888; Polling interrumpido: ' + e.message, 'err');
+      return false; // reintentar en el próximo ciclo
+    }
+  };
+
+  // Bucle de polling
+  const pollLoop = async () => {
+    const done = await poll();
+    if(!done){
+      setTimeout(pollLoop, 3000);
+    } else {
+      btn.disabled = false; btn.innerHTML = '&#9654; Ejecutar pipeline ahora';
+    }
+  };
+  setTimeout(pollLoop, 2000); // primer poll a los 2 s
+});
+
+/* Market Toggle */
+document.getElementById('marketToggle').addEventListener('click', e => {
+  const btn = e.target.closest('.mktbtn');
+  if(!btn) return;
+  state.marketFilter = btn.dataset.geo;
+  document.querySelectorAll('.mktbtn').forEach(b => b.classList.toggle('on', b===btn));
+  renderSources(); // actualiza sinónimos regionales en el panel de fuentes
+  if(state.snapshot){
+    renderWinnersForFilter(
+      state.snapshot.by_geo  || {},
+      state.snapshot.winners || {},
+      Object.keys(state.snapshot.by_geo || {})
+    );
+  }
+});
+
+/* Boton refrescar */
+document.getElementById('btnRefreshWinner').addEventListener('click', async () => {
+  const btn = document.getElementById('btnRefreshWinner');
+  btn.disabled=true; btn.innerHTML='&#9675; Actualizando...';
+  await loadWinner();
+  btn.disabled=false; btn.innerHTML='&#8635; Refrescar';
+});
+
+/* Sparkline function (start + end markers) */
+function sparkline(series, color){
+  if(!series || series.length < 2) return '<svg viewBox="0 0 120 32" style="opacity:.3"><line x1="4" y1="16" x2="116" y2="16" stroke="#aaa" stroke-width="1" stroke-dasharray="3,3"/></svg>';
+  const W=120, H=32, pad=3;
+  const mn=Math.min(...series), mx=Math.max(...series), rng=Math.max(1,mx-mn);
+  const toXY = (v,i) => ({ x: pad+(i/(series.length-1))*(W-2*pad), y: H-pad-((v-mn)/rng)*(H-2*pad) });
+  const pts = series.map((v,i)=>toXY(v,i));
+  const ptStr = pts.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');
+  const first=pts[0], last=pts[pts.length-1];
+  const fv=series[0], lv=series[series.length-1];
+  const area = first.x.toFixed(1)+','+(H-pad)+' '+ptStr+' '+last.x.toFixed(1)+','+(H-pad);
+  const isUp = lv >= fv;
+  const ec = isUp ? '#7C8C5C' : '#9B2D3F';
+  const delta = Math.round(lv-fv);
+  const dStr = (delta>=0?'+':'')+delta;
+  return '<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg">'
+    +'<polygon points="'+area+'" fill="'+color+'" opacity="0.07"/>'
+    +'<polyline points="'+ptStr+'" fill="none" stroke="'+color+'" stroke-width="1.6" stroke-linejoin="round"/>'
+    +'<rect x="'+(first.x-2.5).toFixed(1)+'" y="'+(first.y-2.5).toFixed(1)+'" width="5" height="5" fill="white" stroke="'+color+'" stroke-width="1.4" transform="rotate(45 '+first.x.toFixed(1)+' '+first.y.toFixed(1)+')" opacity="0.9"/>'
+    +'<circle cx="'+last.x.toFixed(1)+'" cy="'+last.y.toFixed(1)+'" r="3" fill="'+ec+'" stroke="white" stroke-width="1"/>'
+    +'<text x="'+(W-2).toFixed(1)+'" y="8" text-anchor="end" font-family="JetBrains Mono,monospace" font-size="7.5" fill="'+ec+'" font-weight="600">'+dStr+'</text>'
+    +'</svg>';
+}
+
+/* INIT */
+renderCountries();
+renderStyles();
+renderMap();
+renderSources();
+renderGeoSelector();
+checkServer();
+loadWinner();
+setInterval(checkServer, 30000);
+setInterval(loadWinner,  60000);
+</script>
+
+<div class="kpi-bar" id="kpiBar">
+  <div class="kpi-bar-inner">
+    <div class="kpi-bar-item">
+      <span class="kpi-bar-label">Mayor Crecimiento (ES)</span>
+      <span class="kpi-bar-value" id="kbGrowth"><em>— sin datos —</em></span>
+    </div>
+    <div class="kpi-bar-sep"></div>
+    <div class="kpi-bar-item">
+      <span class="kpi-bar-label">Tendencia Emergente</span>
+      <span class="kpi-bar-value" id="kbEmergent"><em>— sin datos —</em></span>
+    </div>
+    <div class="kpi-bar-sep"></div>
+    <div class="kpi-bar-item">
+      <span class="kpi-bar-label">Mayor Crecimiento (BR)</span>
+      <span class="kpi-bar-value" id="kbGrowthBR"><em>— sin datos —</em></span>
+    </div>
+    <div class="kpi-bar-sep"></div>
+    <div class="kpi-bar-item">
+      <span class="kpi-bar-label">Último Scraping</span>
+      <span class="kpi-bar-value" id="kbLastRun"><em>— sin datos —</em></span>
+    </div>
+    <div class="kpi-bar-sep"></div>
+    <div class="kpi-bar-item">
+      <span class="kpi-bar-label">Mercados Activos</span>
+      <span class="kpi-bar-value" id="kbMarkets2"><em>—</em></span>
+    </div>
+  </div>
+</div>
+</body>
+</html>
