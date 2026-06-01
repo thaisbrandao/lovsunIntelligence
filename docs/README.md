@@ -1,69 +1,113 @@
 # LOVSUN — Intelligence Engine
 
 > **¿Qué bikini producir, en qué mercado y cuándo — antes de que empiece la temporada?**
+<br>
 
-Sistema de inteligencia visual end-to-end que combina Computer Vision, forecasting de series temporales y scraping de tendencias para convertir datos de búsqueda en decisiones de producción.
+![Python](https://img.shields.io/badge/Python-3.10-3776AB?style=flat-square&logo=python&logoColor=white)
+![PyTorch](https://img.shields.io/badge/PyTorch-ResNet18-EE4C2C?style=flat-square&logo=pytorch&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-REST_API-000000?style=flat-square&logo=flask&logoColor=white)
+![statsmodels](https://img.shields.io/badge/statsmodels-Holt--Winters-4B8BBE?style=flat-square)
+![Leaflet](https://img.shields.io/badge/Leaflet.js-Dashboard-199900?style=flat-square&logo=leaflet&logoColor=white)
 
----
+<br>
 
-## ¿Qué hace?
+> Sistema de inteligencia visual end-to-end que combina **Computer Vision**, **forecasting de series temporales** y **scraping de tendencias** para convertir datos de búsqueda en decisiones de producción — cada mañana, de forma completamente automatizada.
 
-Cada mañana a las 06:00, un pipeline automatizado ejecuta cinco módulos en secuencia:
-
-1. **Scraper** — extrae datos de Google Trends para 5 categorías de moda de baño en múltiples países vía `pytrends`
-2. **Forecasting** — aplica Holt-Winters sobre las series temporales para proyectar tendencias a 4–8 semanas
-3. **Modelo visual** — clasifica imágenes de prendas con ResNet18 fine-tuned (13 clases, 5 estilos macro) y genera un score compuesto por estilo
-4. **API REST** — expone los resultados vía Flask en tres endpoints principales
-5. **Dashboard** — visualiza el mapa de calor de búsquedas y los gráficos de tendencia en tiempo real con Leaflet.js y Chart.js
-
-El output diario es un archivo `latest_daily.json` con el estilo ganador, variación porcentual, mercado prioritario y acción recomendada de stock.
+</div>
 
 ---
 
-## Stack
+## ¿Cómo funciona?
+
+```
+Google Trends  ──►  Forecasting  ──►  Modelo Visual  ──►  API REST  ──►  Dashboard
+  pytrends          Holt-Winters       ResNet18 · 13c       Flask        Leaflet.js
+```
+
+El pipeline se ejecuta diariamente a las **06:00** y genera un `latest_daily.json` con:
+
+- 🏆 Estilo ganador del día
+- 📈 Variación porcentual semanal  
+- 🌍 Mercado prioritario
+- ⚡ Acción recomendada de stock
+
+---
+
+## Módulos
+
+### 🔍 Scraper — Google Trends
+Extrae datos de búsqueda para **5 categorías de moda de baño** en múltiples países usando `pytrends`. Normaliza y almacena las series temporales para el módulo de forecasting.
+
+### 📈 Forecasting — Holt-Winters
+Aplica suavizado exponencial triple sobre las series históricas para proyectar tendencias a **4–8 semanas**. Genera un score compuesto por estilo que alimenta la recomendación final.
+
+### 🧠 Modelo Visual — ResNet18
+Red convolucional fine-tuned sobre un dataset de prendas de baño:
+- **13 clases** de estilos específicos
+- **5 macro-estilos**: triángulo, asimétrico, bandeau, deportivo, bikini clásico
+- Clasificación + top-3 de confianza por imagen
+
+### ⚡ API REST — Flask
+```
+GET  /winner      →  estilo ganador + mercado recomendado del día
+POST /analyze     →  clasificación visual de una prenda (imagen)
+GET  /forecast    →  proyección de tendencia para un estilo dado
+```
+
+### 🗺️ Dashboard — Leaflet.js + Chart.js
+Visualización interactiva con mapa de calor de búsquedas por ciudad y gráficos de tendencia en tiempo real.
+
+---
+
+## Stack tecnológico
 
 | Capa | Tecnología |
-|---|---|
+|:---|:---|
 | Computer Vision | PyTorch · ResNet18 fine-tuned |
 | Forecasting | statsmodels · Holt-Winters |
-| Scraping | pytrends · Google Trends |
-| API | Flask · REST |
-| Dashboard | Leaflet.js · Chart.js |
+| Scraping | pytrends · Google Trends API |
+| Backend | Flask · REST API |
+| Frontend | Leaflet.js · Chart.js |
 | Pipeline | Python daemon · cron 06:00 |
-
----
-
-## Endpoints API
-
-```
-GET /winner       → estilo ganador del día + mercado recomendado
-GET /analyze      → clasificación visual de una prenda (imagen)
-GET /forecast     → proyección de tendencia para un estilo dado
-```
 
 ---
 
 ## Estructura del proyecto
 
 ```
-lovsun/
-├── scraper/          # Google Trends scraping (pytrends)
-├── forecast/         # Holt-Winters forecasting
-├── model/            # ResNet18 classifier + training
-├── server/           # Flask REST API
-├── dashboard/        # Leaflet.js + Chart.js frontend
-├── pipeline.py       # Orquestador diario (06:00)
-└── latest_daily.json # Output del pipeline
+lovsun-Intelligence/
+│
+├── scraper/              # Google Trends scraping
+│   └── trends_scraper.py
+│
+├── forecast/             # Holt-Winters forecasting
+│   └── forecaster.py
+│
+├── model/                # ResNet18 classifier
+│   ├── train.py
+│   └── predict.py
+│
+├── server/               # Flask REST API
+│   └── app.py
+│
+├── dashboard/            # Leaflet.js + Chart.js frontend
+│   └── index.html
+│
+├── pipeline.py           # Orquestador diario (06:00)
+└── latest_daily.json     # Output del pipeline
 ```
 
 ---
 
-## Demo
+## Demo interactiva
 
-Abre `index.html` en el navegador para ver la presentación interactiva del proyecto.
+🔗 **[Ver presentación del proyecto →](https://thaisbrandao.github.io/lovsun-Intelligence/)**
 
 ---
 
-## Autora
+<div align="center">
 
-**Thaís Brandão** · [LinkedIn](https://linkedin.com/in/thaisbrandao) · tjsbrandao@gmail.com
+**Thaís Brandão**  
+[LinkedIn](https://linkedin.com/in/thaisbrandao) · tjsbrandao@gmail.com
+
+</div>
